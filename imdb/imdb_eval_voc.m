@@ -35,6 +35,9 @@ else
 end
 
 conf.cache_dir = fullfile('output', 'rfcn_cachedir', cache_name, imdb.name);
+if (isdir(conf.cache_dir) == false)
+  conf.cache_dir = fullfile('output', 'weakly_cachedir', cache_name, imdb.name);
+end
 VOCopts  = imdb.details.VOCopts;
 image_ids = imdb.image_ids;
 test_set = VOCopts.testset;
