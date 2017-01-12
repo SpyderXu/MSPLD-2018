@@ -19,8 +19,8 @@ function weakly_debug(conf, image_roidb, boxes, reg_boxes, cls, scores, dir_name
   split_name = image_roidb.image_id;
   saveas(gcf, fullfile(conf.debug_cache_dir, dir_name, [split_name, '.jpg']));
 %%% Regression Boxes
-  %showboxes(im, reg_boxes_cell, classes, 'voc');
-  %saveas(gcf, fullfile(conf.debug_cache_dir, dir_name, [split_name, '_REG.jpg']));
+  showboxes(im, reg_boxes_cell, classes, 'voc');
+  saveas(gcf, fullfile(conf.debug_cache_dir, dir_name, [split_name, '_reg.jpg']));
   
 %%% Draw Ground Truth
   for i = 1:length(image_roidb.Debug_GT_Cls)
@@ -28,6 +28,6 @@ function weakly_debug(conf, image_roidb, boxes, reg_boxes, cls, scores, dir_name
   end
   %figure(1);
   showboxes(im, grt_boxes_cell, classes, 'voc');
-  saveas(gcf, fullfile(conf.debug_cache_dir, dir_name, [split_name, '_GRT.jpg']));
+  saveas(gcf, fullfile(conf.debug_cache_dir, dir_name, [split_name, '_ok.jpg']));
   
 end

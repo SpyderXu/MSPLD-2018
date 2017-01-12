@@ -36,9 +36,8 @@ function [sampled_train, saved_train] = weakly_sample_train(image_roidb_train, n
     for i = 1:total
         index  = rand_samples(i);
         number = numel(image_roidb_train(index).image_label);
-        %label  = image_roidb_train(index).image_label(randperm(number,1));
         label  = image_roidb_train(index).image_label(randperm(number,1));
-        if (num_select_per_class(label) < num_per_class)
+        if (num_select_per_class(label) < num_per_class(label))
 	        num_select_per_class(label) = num_select_per_class(label) + 1;
 	        selected_ids(end+1) = index;
             if (flip), selected_ids(end+1) = index + total; end
@@ -79,6 +78,6 @@ function [sampled_train, saved_train] = weakly_sample_train(image_roidb_train, n
         end
     end
     for i = 1:numel(classes)
-        fprintf('Class [%02d] sample : %02d / total : %5d\n', i, num_select_per_class(i), num_total_per_class(i));
+        fprintf('Class [%02d] sample : %02d / total : %5d = Limited : %2d\n', i, num_select_per_class(i), num_total_per_class(i), num_per_class(i));
     end
 end

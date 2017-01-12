@@ -1,13 +1,12 @@
 clc;
 clear mex;
 clear is_valid_handle; % to clear init_key
-run(fullfile(fileparts(fileparts(mfilename('fullpath'))), 'startup'));
+%run(fullfile(fileparts(fileparts(mfilename('fullpath'))), 'startup'));
 %% -------------------- CONFIG --------------------
-opts.caffe_version          = 'caffe-rfcn';
+opts.caffe_version          = 'caffe';
 opts.gpu_id                 = auto_select_gpu;
 active_caffe_mex(opts.gpu_id, opts.caffe_version);
 
-snapshot_interval           = 500;
 % model
 models                      = cell(2,1);
 models{1}.solver_def_file   = fullfile(pwd, 'models', 'rfcn_prototxts', 'ResNet-50L_OHEM_res3a', 'solver_lr1_3.prototxt');
@@ -28,9 +27,11 @@ extra_para                  = load(fullfile(pwd, 'models', 'pre_trained_models',
 conf                        = rfcn_config_ohem('image_means', mean_image);
 conf.classes                = extra_para.VOCopts.classes;
 conf.per_class_sample       = 3;
+%conf.per_class_sample       = [2, 2, 2, 4, 4, 2, 2, 2, 2, 4, ...
+%                               4, 4, 4, 2, 2, 4, 3, 2, 3, 3];
 box_param.bbox_means        = extra_para.bbox_means;
 box_param.bbox_stds         = extra_para.bbox_stds;
-conf.base_select            = [1, 1.2, 1.4, 1.6, 1.8, 2];
+conf.base_select            = [1, 1];
 conf.allow_mul_ins          = true;
 conf.debug                  = true;
 conf.rng_seed               = 5;
@@ -39,7 +40,7 @@ step_epoch                  = 7;
 if conf.allow_mul_ins,  multiselect_string = '_multi';
 else,                   multiselect_string = '_single'; end
 opts.cache_name             = [opts.cache_name, '_per-', num2str(conf.per_class_sample), multiselect_string, ...
-                                                '_lambda', num2str(conf.SPLD.lambda), '_gamma', num2str(conf.SPLD.gamma), ...
+                                                '_max_epoch', num2str(max_epoch), '_stepsize-', num2str(step_epoch), ...
                                                 '_seed-', num2str(conf.rng_seed)];
 % train/test data
 fprintf('Loading dataset...');
@@ -50,9 +51,8 @@ fprintf('Done.\n');
 
 fprintf('-------------------- TRAINING --------------------\n');
 train_time                  = tic;
-opts.rfcn_model             = weakly_co_train_v3(conf, dataset.imdb_train, dataset.roidb_train, models, ...
+opts.rfcn_model             = weakly_co_train_v4(conf, dataset.imdb_train, dataset.roidb_train, models, ...
                                 'cache_name',       opts.cache_name, ...
-                                'snapshot_interval',snapshot_interval, ...
                                 'max_epoch',        max_epoch, ...
                                 'step_epoch',       step_epoch, ...
                                 'box_param',        box_param);
@@ -66,13 +66,13 @@ test_time                   = tic;
 net_defs                    = [];
 net_models                  = [];
 for idx = 1:numel(models)
-                  mAPs{idx} = weakly_co_test(conf, dataset.imdb_test, dataset.roidb_test, ...
+            mAPs{idx} = weakly_co_test(conf, dataset.imdb_test, dataset.roidb_test, ...
                                 'net_defs',         {models{idx}.test_net_def_file}, ...
                                 'net_models',       opts.rfcn_model(idx), ...
                                 'cache_name',       opts.cache_name,...
                                 'log_prefix',       [models{idx}.name, '_final_'],...
                                 'ignore_cache',     true);
-              net_defs{idx} = models{idx}.test_net_def_file;
+            net_defs{idx} = models{idx}.test_net_def_file;
             net_models{idx} = opts.rfcn_model{idx};
 end
 mAPs{3}                     = weakly_co_test(conf, dataset.imdb_test, dataset.roidb_test, ...
@@ -88,29 +88,22 @@ for idx = 1:numel(models)
     fprintf('%s mAP : %.3f\n', models{idx}.name, mAPs{idx});
 end
 
-
-
 fprintf('----------------------------------All Test-----------------------------\n');
-test_iters          = [];
-for iter = snapshot_interval:snapshot_interval:(solver_iters(end)*1000)
-  test_iters{end+1} = num2str(iter);
-end
-rfcn_model          = cell(numel(models), numel(test_iters));
-for iter = 1:numel(test_iters)
+rfcn_model          = cell(numel(models), numel(conf.base_select)+1);
+for iter = 0:numel(conf.base_select)
   for idx = 1:numel(models)
-    rfcn_model{idx, iter} = fullfile(pwd, 'output', 'weakly_cachedir' , opts.cache_name, 'voc_2007_trainval', [models{idx}.name, '_iter_', test_iters{iter}, '.caffemodel']);
+    rfcn_model{idx, iter+1} = fullfile(pwd, 'output', 'weakly_cachedir' , opts.cache_name, 'voc_2007_trainval', [models{idx}.name, '_Loop_', num2str(iter), 'final.caffemodel']);
+	assert(exist(rfcn_model{idx, iter}, 'file') ~= 0, 'not found trained model');
   end
-  assert(exist(rfcn_model{idx, iter}, 'file') ~= 0, 'not found trained model');
 end
 S_mAPs              = zeros(numel(models), numel(test_iters));
-for index = 1:numel(rfcn_model)
+for index = 1:size(rfcn_model, 2)
   for idx = 1:numel(models)
-    S_mAPs(idx,index) = weakly_co_test(conf, dataset.imdb_test, dataset.roidb_test, ...
+    S_mAPs(idx, index) = weakly_co_test(conf, dataset.imdb_test, dataset.roidb_test, ...
                              'net_defs',         {models{idx}.test_net_def_file}, ...
                              'net_models',       rfcn_model(idx,index), ...
                              'cache_name',       opts.cache_name,...
                              'log_prefix',       [models{idx}.name, '_', test_iters{index}, '_'],...
                              'ignore_cache',     true);
   end
-  caffe.reset_all();
 end

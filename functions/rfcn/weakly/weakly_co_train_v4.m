@@ -1,4 +1,4 @@
-function save_model_path = weakly_co_train_v3(conf, imdb_train, roidb_train, models, varargin)
+function save_model_path = weakly_co_train_v4(conf, imdb_train, roidb_train, models, varargin)
 % --------------------------------------------------------
 % R-FCN implementation
 % Modified from MATLAB Faster R-CNN (https://github.com/shaoqingren/faster_rcnn)
@@ -46,6 +46,9 @@ function save_model_path = weakly_co_train_v3(conf, imdb_train, roidb_train, mod
     %    fprintf('Train : %s Exits, ignore training', save_model_path);
     %    return;
     %end
+    if (numel(conf.per_class_sample) == 1)
+        conf.per_class_sample = conf.per_class_sample * ones(numel(conf.classes), 1);
+    end
     
 %% init
     % set random seed
@@ -89,13 +92,17 @@ function save_model_path = weakly_co_train_v3(conf, imdb_train, roidb_train, mod
     count_single_label = 0;
     filtered_image_roidb_train = [];
     for index = 1:numel(image_roidb_train)
-        Struct = image_roidb_train(index);
         gt = image_roidb_train(index).GT_Index;
-        Struct.overlap      = [];%image_roidb_train(index).overlap(~gt, :);
-        Struct.Debug_GT_Cls = image_roidb_train(index).class(gt, :);
-        Struct.Debug_GT_Box = image_roidb_train(index).boxes(gt, :);
-        Struct.boxes        = image_roidb_train(index).boxes(~gt, :);
-        Struct.bbox_targets = [];%image_roidb_train(index).class(~gt, :);
+        Struct = struct('image_path', image_roidb_train(index).image_path, ...
+                        'image_id',   image_roidb_train(index).image_id, ...
+                        'imdb_name',  image_roidb_train(index).imdb_name, ...
+                        'im_size',    image_roidb_train(index).im_size, ...
+                        'overlap',    [], ...
+                        'boxes',      image_roidb_train(index).boxes(~gt, :), ...
+                        'bbox_targets', [], ...
+                        'Debug_GT_Cls', image_roidb_train(index).class(gt, :), ...
+                        'Debug_GT_Box', image_roidb_train(index).boxes(gt, :), ...
+                        'image_label',image_roidb_train(index).image_label);
         if (sum(gt) == numel(Struct.image_label) || conf.allow_mul_ins)
             filtered_image_roidb_train{end+1} = Struct;
         end
@@ -121,9 +128,9 @@ function save_model_path = weakly_co_train_v3(conf, imdb_train, roidb_train, mod
     for index = 1:num_class
         fprintf('%13s : unlabeled boxes : %5d,  labeled boxes : %3d\n', conf.classes{index}, boxes_per_class(index, 1), boxes_per_class(index, 2));
     end
-    clear class j timestamp log_file index;
+    clear class j timestamp log_file index filtered_image_roidb_train roidb_train imdb_train;
     boxes_per_class = boxes_per_class(:, 2);
-%% Add conf flip attr
+%% assert conf flip attr
     conf.flip = opts.imdb_train{1}.flip;
     for idx = 1:numel(opts.imdb_train)
         assert (opts.imdb_train{idx}.flip == 1);
@@ -141,14 +148,17 @@ function save_model_path = weakly_co_train_v3(conf, imdb_train, roidb_train, mod
         base_select = conf.base_select(index);
 
         for idx = 1:numel(models)
-            fprintf('Start Loop %2d == %8s ==with base_select : %4.2f\n', index, models{idx}.name, base_select);
+            fprintf('-------Start Loop %2d == %8s ==with base_select : %4.2f-------\n', index, models{idx}.name, base_select);
             caffe.reset_all();
-            caffe_test_net = caffe.Net(models{3-idx}.test_net_def_file, 'test');
-            caffe_test_net.copy_from(previous_model{3-idx});
+            oppo_test_net = caffe.Net(models{3-idx}.test_net_def_file, 'test');
+            oppo_test_net.copy_from(previous_model{3-idx});
+            self_test_net = caffe.Net(models{idx}.test_net_def_file, 'test');
+            self_test_net.copy_from(previous_model{idx});
+
             PER_Select            = boxes_per_class / min(boxes_per_class) * base_select;
 
             debug_dir             = [models{idx}.name, '_Loop_', num2str(index)];
-            new_image_roidb_train = weakly_get_fake_gt_v3(conf, caffe_test_net, image_roidb_train, opts.box_param.bbox_means, opts.box_param.bbox_stds, PER_Select, debug_dir);
+            new_image_roidb_train = weakly_get_fake_gt_co(conf, oppo_test_net, self_test_net, image_roidb_train, opts.box_param.bbox_means, opts.box_param.bbox_stds, PER_Select, debug_dir);
 
             previous_model{idx}   = weakly_supervised([warmup_roidb_train;new_image_roidb_train], models{idx}.solver_def_file, models{idx}.net_file, opts.val_interval, opts.snapshot_interval, ...
                                          opts.box_param, conf, cache_dir, [models{idx}.name, '_Loop_', num2str(index)], model_suffix, 'final', opts.step_epoch, opts.max_epoch);

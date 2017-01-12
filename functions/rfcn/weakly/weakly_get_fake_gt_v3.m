@@ -57,7 +57,7 @@ function new_image_roidb_train = weakly_get_fake_gt_v3(conf, caffe_test_net, ima
     PER_Select      = ceil(PER_Select);
     MAX_SEL_PER_CLS = max([MAX_SEL_PER_CLS, PER_Select], [], 2);
     LIMIT = 10 * min(MAX_SEL_PER_CLS);
-    MAX_SEL_PER_CLS(find(MAX_SEL_PER_CLS>=10*min(MAX_SEL_PER_CLS))) == 10*
+    MAX_SEL_PER_CLS(find(MAX_SEL_PER_CLS>=LIMIT)) = LIMIT;
 
     sel_for_class   = zeros(num_classes, 1);
     match_for_class = zeros(num_classes, 1);
@@ -65,7 +65,7 @@ function new_image_roidb_train = weakly_get_fake_gt_v3(conf, caffe_test_net, ima
     highst_score    = zeros(num_classes, 1);
 
     final_per_class = cell(num_classes, 1);
-    ratio = [0.0, 0.0, 0.0, 0.0, 0.0, 0.7, 0.0, 0.7, 0.0, 0.0, ...
+    ratio = [0.7, 0.0, 0.0, 0.0, 0.0, 0.7, 0.0, 0.7, 0.0, 0.5, ...
              0.0, 0.7, 0.7, 0.0, 0.7, 0.0, 0.0, 0.7, 0.7, 0.0];
     %ratio = zeros(num_classes, 1);
     for Cls = 1:num_classes

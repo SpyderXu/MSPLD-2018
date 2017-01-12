@@ -42,6 +42,9 @@ function save_model_path = weakly_train_v3(conf, imdb_train, roidb_train, vararg
     %    return;
     %end
     
+    if (numel(conf.per_class_sample) == 1) 
+        conf.per_class_sample = conf.per_class_sample * ones(numel(conf.classes), 1);
+	end
 %% init
     % set random seed
     prev_rng = seed_rand(conf.rng_seed);

@@ -38,6 +38,7 @@ function mAP = weakly_co_test(conf, imdb, roidb, varargin)
     
     num_images = length(imdb.image_ids);
     num_classes = imdb.num_classes;
+    caffe.reset_all(); 
     
     try
       aboxes = cell(num_classes, 1);
