@@ -41,11 +41,6 @@ function save_model_path = weakly_co_train_v4(conf, imdb_train, roidb_train, mod
     imdbs_name = cell2mat(cellfun(@(x) x.name, imdb_train, 'UniformOutput', false));
     cache_dir = fullfile(pwd, 'output', 'weakly_cachedir', opts.cache_name, imdbs_name);
     conf.debug_cache_dir =  fullfile(pwd, 'output', 'weakly_cachedir', opts.cache_name, 'debug');
-    %save_model_path = fullfile(cache_dir, 'final');
-    %if exist(save_model_path, 'file')
-    %    fprintf('Train : %s Exits, ignore training', save_model_path);
-    %    return;
-    %end
     if (numel(conf.per_class_sample) == 1)
         conf.per_class_sample = conf.per_class_sample * ones(numel(conf.classes), 1);
     end
@@ -109,6 +104,23 @@ function save_model_path = weakly_co_train_v4(conf, imdb_train, roidb_train, mod
     end
     fprintf('Images after filtered : %d, total : %d\n', numel(filtered_image_roidb_train), numel(image_roidb_train));
     image_roidb_train = cat(1, filtered_image_roidb_train{:});
+    %% New Warmup
+    filtered_image_roidb_train = [];
+    for index = 1:numel(warmup_roidb_train)
+        gt = warmup_roidb_train(index).GT_Index;
+        Struct = struct('image_path', warmup_roidb_train(index).image_path, ...
+                        'image_id',   warmup_roidb_train(index).image_id, ...
+                        'imdb_name',  warmup_roidb_train(index).imdb_name, ...
+                        'im_size',    warmup_roidb_train(index).im_size, ...
+                        'overlap',    warmup_roidb_train(index).overlap, ...
+                        'boxes',      warmup_roidb_train(index).boxes, ...
+                        'bbox_targets', warmup_roidb_train(index).bbox_targets, ...
+                        'Debug_GT_Cls', warmup_roidb_train(index).class(gt, :), ...
+                        'Debug_GT_Box', warmup_roidb_train(index).boxes(gt, :), ...
+                        'image_label',warmup_roidb_train(index).image_label);
+        filtered_image_roidb_train{end+1} = Struct;
+    end
+    warmup_roidb_train = cat(1, filtered_image_roidb_train{:});
     %% Show Box Per class
     num_class = numel(conf.classes);
     boxes_per_class   = zeros(num_class, 2);
@@ -119,8 +131,7 @@ function save_model_path = weakly_co_train_v4(conf, imdb_train, roidb_train, mod
         end
     end
     for index = 1:numel(warmup_roidb_train)
-        class = warmup_roidb_train(index).class;
-        class = class(warmup_roidb_train(index).GT_Index);
+        class = warmup_roidb_train.Debug_GT_Cls;
         for j = 1:numel(class)
             boxes_per_class(class(j), 2) = boxes_per_class(class(j), 2) + 1;
         end
@@ -159,7 +170,8 @@ function save_model_path = weakly_co_train_v4(conf, imdb_train, roidb_train, mod
 
             debug_dir             = [models{idx}.name, '_Loop_', num2str(index)];
             new_image_roidb_train = weakly_get_fake_gt_co(conf, oppo_test_net, self_test_net, image_roidb_train, opts.box_param.bbox_means, opts.box_param.bbox_stds, PER_Select, debug_dir);
-
+            
+            %new_image_roidb_train = reshape(new_image_roidb_train, [numel(new_image_roidb_train), 1]);
             previous_model{idx}   = weakly_supervised([warmup_roidb_train;new_image_roidb_train], models{idx}.solver_def_file, models{idx}.net_file, opts.val_interval, opts.snapshot_interval, ...
                                          opts.box_param, conf, cache_dir, [models{idx}.name, '_Loop_', num2str(index)], model_suffix, 'final', opts.step_epoch, opts.max_epoch);
         end

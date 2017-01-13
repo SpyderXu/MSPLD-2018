@@ -65,9 +65,9 @@ function new_image_roidb_train = weakly_get_fake_gt_v3(conf, caffe_test_net, ima
     highst_score    = zeros(num_classes, 1);
 
     final_per_class = cell(num_classes, 1);
-    ratio = [0.7, 0.0, 0.0, 0.0, 0.0, 0.7, 0.0, 0.7, 0.0, 0.5, ...
-             0.0, 0.7, 0.7, 0.0, 0.7, 0.0, 0.0, 0.7, 0.7, 0.0];
-    %ratio = zeros(num_classes, 1);
+    %ratio = [0.7, 0.0, 0.0, 0.0, 0.0, 0.7, 0.0, 0.7, 0.0, 0.5, ...
+    %         0.0, 0.7, 0.7, 0.0, 0.7, 0.0, 0.0, 0.7, 0.7, 0.0];
+    ratio = zeros(num_classes, 1);
     for Cls = 1:num_classes
         if (numel(select_per_class{Cls}) == 0), continue; end
         temp   = select_per_class{Cls};

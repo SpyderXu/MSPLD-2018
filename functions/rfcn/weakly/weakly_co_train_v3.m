@@ -41,11 +41,6 @@ function save_model_path = weakly_co_train_v3(conf, imdb_train, roidb_train, mod
     imdbs_name = cell2mat(cellfun(@(x) x.name, imdb_train, 'UniformOutput', false));
     cache_dir = fullfile(pwd, 'output', 'weakly_cachedir', opts.cache_name, imdbs_name);
     conf.debug_cache_dir =  fullfile(pwd, 'output', 'weakly_cachedir', opts.cache_name, 'debug');
-    %save_model_path = fullfile(cache_dir, 'final');
-    %if exist(save_model_path, 'file')
-    %    fprintf('Train : %s Exits, ignore training', save_model_path);
-    %    return;
-    %end
     
 %% init
     % set random seed

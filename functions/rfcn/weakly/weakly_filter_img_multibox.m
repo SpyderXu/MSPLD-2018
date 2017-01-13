@@ -1,6 +1,6 @@
 function ok = weakly_filter_img_multibox(conf, caffe_test_net, image_path, structes);
   max_rois_num_in_gpu = 10000;
-  boxes = {structes.reg_box}; boxes = cat(1, boxes{:});
+  boxes = {structes.box};     boxes = cat(1, boxes{:});
   scores= {structes.score};   scores= cat(1, scores{:});
   cls   = {structes.cls};     cls   = cat(1, cls{:});
   num_boxes = size(boxes, 1);
@@ -29,6 +29,7 @@ function boxes = multibox(boxes)
   ANS = [ANS;CUR];
   CUR = boxes; CUR(:,1) = (CUR(:,1)+CUR(:,3)) / 2;
   ANS = [ANS;CUR];
+
   CUR = boxes; W = (CUR(:,3)-CUR(:,1))/4; H = (CUR(:,4)-CUR(:,2))/4;
   CUR(:,1) = CUR(:,1) + W; CUR(:,3) = CUR(:,3) - W;
   CUR(:,2) = CUR(:,2) + H; CUR(:,4) = CUR(:,4) - H;

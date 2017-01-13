@@ -5,6 +5,7 @@ function new_image_roidb_train = weakly_get_fake_gt_co(conf, oppo_test_net, self
     num_classes      = numel(conf.classes);   
     tic;
     thresh_hold = 0.2;
+    LIMIT = 8;
     oppo_all_Select = cell(num_roidb/2, 1);
     self_all_Select = cell(num_roidb/2, 1);
     for index = 1:(num_roidb/2)
@@ -65,7 +66,7 @@ function new_image_roidb_train = weakly_get_fake_gt_co(conf, oppo_test_net, self
 	  OPPO_COUNT_PER_CLS(cls) = numel(select_per_class{cls});
     end
     %% Calculate PerMax
-    OPPO_SEL_PER_CLS = weakly_cal_sample_num(PER_Select, OPPO_COUNT_PER_CLS, 10);
+    OPPO_SEL_PER_CLS = weakly_cal_sample_num(PER_Select, OPPO_COUNT_PER_CLS, LIMIT);
 
     %% Merge Into Self Pool
     for Cls = 1:num_classes
