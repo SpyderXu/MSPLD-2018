@@ -13,7 +13,7 @@ function [structs] = weakly_extract_struct(conf, caffe_test_net, image_roidb_tra
   [boxes, scores]        = weakly_im_detect(conf, caffe_test_net, imread(image_roidb_train(1).image_path), image_roidb_train(1).boxes, max_rois_num_in_gpu);
 
   if (numel(image_roidb_train) == 2)
-    [rev_boxes, rev_scores]        = weakly_im_detect(conf, caffe_test_net, imread(image_roidb_train(2).image_path), image_roidb_train(1).boxes, max_rois_num_in_gpu);
+    [rev_boxes, rev_scores]        = weakly_im_detect(conf, caffe_test_net, imread(image_roidb_train(2).image_path), image_roidb_train(2).boxes, max_rois_num_in_gpu);
     rev_boxes(:, [1,3]) = image_roidb_train(1).im_size(2) + 1 - rev_boxes(:, [3,1]);
     boxes  = (boxes + rev_boxes) / 2;
     scores = (scores+ rev_scores) / 2;

@@ -31,7 +31,7 @@ conf.per_class_sample       = 3;
 %                               4, 4, 4, 2, 2, 4, 3, 2, 3, 3];
 box_param.bbox_means        = extra_para.bbox_means;
 box_param.bbox_stds         = extra_para.bbox_stds;
-conf.base_select            = [1, 1];
+conf.base_select            = [1, 1.2, 1.4];
 conf.allow_mul_ins          = true;
 conf.debug                  = true;
 conf.rng_seed               = 5;
@@ -51,7 +51,7 @@ fprintf('Done.\n');
 
 fprintf('-------------------- TRAINING --------------------\n');
 train_time                  = tic;
-opts.rfcn_model             = weakly_co_train_v4(conf, dataset.imdb_train, dataset.roidb_train, models, ...
+opts.rfcn_model             = weakly_co_train_final(conf, dataset.imdb_train, dataset.roidb_train, models, ...
                                 'cache_name',       opts.cache_name, ...
                                 'max_epoch',        max_epoch, ...
                                 'step_epoch',       step_epoch, ...

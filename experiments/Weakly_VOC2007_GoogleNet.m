@@ -18,7 +18,7 @@ model.extra_para            = fullfile(pwd, 'models', 'pre_trained_models', 'box
 model.extra_para            = load(model.extra_para);
 
 % cache name
-opts.cache_name             = 'rfcn_WEAKLY_GoogleNet';
+opts.cache_name             = 'SS_EB';
 % config
 conf                        = rfcn_config_ohem('image_means', model.mean_image);
 conf.classes                = model.extra_para.VOCopts.classes;
@@ -41,8 +41,8 @@ opts.cache_name             = [opts.cache_name, '_per-', num2str(mean(conf.per_c
 % train/test data
 fprintf('Loading dataset...')
 dataset                     = [];
-dataset                     = Dataset.voc2007_trainval_ss(dataset, 'train', conf.use_flipped);
-dataset                     = Dataset.voc2007_test_ss(dataset, 'test', false);
+dataset                     = Dataset.voc2007_trainval_ss_eb(dataset, 'train', conf.use_flipped);
+dataset                     = Dataset.voc2007_test_ss_eb(dataset, 'test', false);
 fprintf('Done.\n');
 
 fprintf('-------------------- TRAINING --------------------\n');

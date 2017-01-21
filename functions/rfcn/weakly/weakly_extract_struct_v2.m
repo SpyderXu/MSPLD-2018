@@ -1,7 +1,6 @@
 function [structs] = weakly_extract_struct_v2(conf, caffe_test_net, image_roidb_train, img_ids, num_classes, thresh_hold)
   max_rois_num_in_gpu = 10000;
   assert (numel(image_roidb_train) == 1 || numel(image_roidb_train) == 2);
-  assert (numel(image_roidb_train) == numel(img_ids));
   box_num = size(image_roidb_train(1).boxes, 1);
   if (numel(image_roidb_train) == 2)
     assert (all(image_roidb_train(1).im_size == image_roidb_train(2).im_size));
@@ -13,14 +12,13 @@ function [structs] = weakly_extract_struct_v2(conf, caffe_test_net, image_roidb_
   [boxes, scores]        = weakly_im_detect(conf, caffe_test_net, imread(image_roidb_train(1).image_path), image_roidb_train(1).boxes, max_rois_num_in_gpu);
 
   if (numel(image_roidb_train) == 2)
-    [rev_boxes, rev_scores]        = weakly_im_detect(conf, caffe_test_net, imread(image_roidb_train(2).image_path), image_roidb_train(1).boxes, max_rois_num_in_gpu);
+    [rev_boxes, rev_scores]        = weakly_im_detect(conf, caffe_test_net, imread(image_roidb_train(2).image_path), image_roidb_train(2).boxes, max_rois_num_in_gpu);
     rev_boxes(:, [1,3]) = image_roidb_train(1).im_size(2) + 1 - rev_boxes(:, [3,1]);
     boxes  = (boxes + rev_boxes) / 2;
     scores = (scores+ rev_scores) / 2;
   end
   [MX_per_class, ID_cls] = max(scores);
   [MX_per_boxes, ID_bbx] = max(scores, [], 2);
-  [mx_score, mx_class]   = max(MX_per_class);
   assert (num_classes == size(scores, 2));
   %thresh_hold            = 0.01;
   structs = cell(num_classes, 1);

@@ -167,6 +167,8 @@ if ~isempty(boxes)
     if flip_proposal
         boxes(:, [1, 3]) = voc_rec.imgsize(1) + 1 - boxes(:, [3, 1]);
     end
+    assert (all(boxes(:,3) <= voc_rec.imgsize(1)));
+    assert (all(boxes(:,4) <= voc_rec.imgsize(2)));
 end
 
 %           gt: [2108x1 double]
