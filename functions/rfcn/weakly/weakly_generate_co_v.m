@@ -1,30 +1,37 @@
-function [new_image_roidb_train] = weakly_generate_v(conf, train_solver, image_roidb_train, PER_Select, LIMIT)
+function [new_image_roidb_train, ret_keep] = weakly_generate_co_v(conf, oppo_train_solver, self_train_solver, image_roidb_train, keep_id, pre_keep, PER_Select, LIMIT)
 
-  train_solver.net.set_phase('test'); 
-  number = numel(image_roidb_train);
+  oppo_train_solver.net.set_phase('test'); 
+  self_train_solver.net.set_phase('test'); 
+  assert (max(keep_id) <= numel(pre_keep));
+  number  = numel(keep_id);  
+  assert(numel(image_roidb_train) == number);
   classes = conf.classes;
 
   Loss = Inf(numel(image_roidb_train), numel(classes));
+  smallest = 20;
 
   count_per_class = zeros(numel(classes), 1);
-  begin_time = tic;
+  tic;
   for idx = 1:number
     if (rem(idx, 500) == 0 || idx == number), fprintf('weakly_generate_v : handle %4d / %4d image_roidb_train, cost %.2f s\n', idx, number, toc); end
+    ok = check_filter_img(image_roidb_train(idx).pseudo_boxes, smallest);
+    if (ok == false), continue; end
 
     class = {image_roidb_train(idx).pseudo_boxes.class}; 
     class = cat(1, class{:}); class = unique(class);
     count_per_class(class) = count_per_class(class) + 1;
 
-    loss = get_loss(conf, train_solver, image_roidb_train(idx));
+    loss = get_loss(conf, self_train_solver, image_roidb_train(idx));
+    if (pre_keep(keep_id(idx)))
+      loss = loss - get_loss(conf, oppo_train_solver, image_roidb_train(idx));
+    end
     for j = 1:numel(class)
       Loss(idx, class(j)) = loss;
     end
   end
-
-  %SEL_PER_CLS = weakly_cal_sample_num(PER_Select, count_per_class, LIMIT);
-  SEL_PER_CLS = PER_Select;
-
+  SEL_PER_CLS = weakly_cal_sample_num(PER_Select, count_per_class, LIMIT);
   cur_keep = false(numel(image_roidb_train), 1);
+  %MX_IDS   = zeros(numel(pre_keep), numel(classes));
   for cls = 1:numel(classes)
     [mx_score, mx_ids] = sort(Loss(:, cls));
     %MX_IDS(:, cls) = mx_ids;
@@ -38,11 +45,12 @@ function [new_image_roidb_train] = weakly_generate_v(conf, train_solver, image_r
   end
   
   new_image_roidb_train = image_roidb_train(cur_keep);
+  ret_keep = false(numel(pre_keep), 1);
+  ret_keep(keep_id) = cur_keep;
 
+  
   final_count = zeros(numel(classes), 1);
   trueo_count = zeros(numel(classes), 1);
-  missd_count = zeros(numel(classes), 1);
-  total_count = zeros(numel(classes), 1);
   for i = 1:numel(new_image_roidb_train)
     image_label = new_image_roidb_train(i).image_label;
     class = {new_image_roidb_train(i).pseudo_boxes.class};
@@ -53,20 +61,16 @@ function [new_image_roidb_train] = weakly_generate_v(conf, train_solver, image_r
         trueo_count(class(j)) = trueo_count(class(j)) + 1;
       end
     end
-    class = setdiff(image_label, class);
-    for j = 1:numel(class), missd_count(class(j)) = missd_count(class(j)) + 1; end
-    for j = 1:numel(image_label), total_count(image_label(j)) = total_count(image_label(j)) + 1; end
   end
   
   for Cls = 1:numel(classes)
     loss = Loss(cur_keep, Cls);
     loss = loss(find(loss~=inf));
-    fprintf('[%02d] [%12s] : [count : %3d / should : %3d / select : %3d] [FINAL= (OK) %3d/%3d Mis: %3d/%3d] : Accuracy : %.4f :| loss : [%.2f, %.2f]\n', Cls, classes{Cls}, ...
-                 count_per_class(Cls), ceil(PER_Select(Cls)), SEL_PER_CLS(Cls), trueo_count(Cls), final_count(Cls), missd_count(Cls), total_count(Cls), ...
+    fprintf('[%02d] [%12s] : [count : %3d / should : %3d / select : %3d] [FINAL= (OK) %3d/%3d] : Accuracy : %.4f :| loss : [%.2f, %.2f]\n', Cls, classes{Cls}, ...
+                 count_per_class(Cls), ceil(PER_Select(Cls)), SEL_PER_CLS(Cls), trueo_count(Cls), final_count(Cls), ...
                  trueo_count(Cls) / final_count(Cls), min(loss), max(loss));
   end
-  fprintf('weakly_generate_v end : [accuracy: %.3f (%4d/%4d)], [miss: (%.3f,%.3f) (%4d/%4d)] , cost %.1f s\n', sum(trueo_count) / sum(final_count), sum(trueo_count), sum(final_count), ...
-            sum(missd_count)/sum(total_count), mean(missd_count./total_count), sum(missd_count), sum(total_count), toc(begin_time));
+  fprintf('weakly_generate_v end : accuracy : %.3f (%4d / %4d) \n', sum(trueo_count) / sum(final_count), sum(trueo_count), sum(final_count));
 
 end
 
@@ -79,4 +83,25 @@ function loss = get_loss(conf, solver, roidb_train)
   assert (strcmp(rst(2).blob_name, 'loss_bbox') == 1);
   assert (strcmp(rst(3).blob_name, 'loss_cls') == 1);
   loss = rst(2).data + rst(3).data;
+end
+
+function ok = check_filter_img(pseudo_boxes, smallest)
+  class = {pseudo_boxes.class};
+  class = cat(1, class{:});
+  boxes = {pseudo_boxes.box};
+  boxes = cat(1, boxes{:});
+  if (numel(class) > numel(unique(class)))
+    ok = false;
+  elseif (numel(class) > 4)
+    ok = false;
+  else
+    keepB = find(boxes(:,3)-boxes(:,1) >= smallest);
+    keepA = find(boxes(:,4)-boxes(:,2) >= smallest);
+    keep  = intersect(keepA, keepB);
+    if (numel(keep) ~= numel(class))
+      ok = false;
+    else
+      ok = true;
+    end
+  end
 end

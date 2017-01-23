@@ -1,4 +1,4 @@
-function [new_image_roidb_train] = weakly_generate_pseudo(conf, test_nets, image_roidb_train, bbox_means, bbox_stds)
+function [new_image_roidb_train, keep] = weakly_generate_co_pseudo(conf, test_nets, image_roidb_train, bbox_means, bbox_stds)
     assert (conf.flip); % argument
 
     num_roidb        = numel(image_roidb_train);       assert (rem(num_roidb,2) == 0);
@@ -19,6 +19,7 @@ function [new_image_roidb_train] = weakly_generate_pseudo(conf, test_nets, image
         reverse_idx = index + (num_roidb/2);
         %if (reverse_idx > num_roidb), reverse_idx = index - (num_roidb/2); end
         cur_roidb_train = {image_roidb_train(index), image_roidb_train(reverse_idx)};
+        cur_img_ids     = [index, reverse_idx];
         [boxes] = generate_pseudo(conf, test_nets, cur_roidb_train, num_classes, thresh_hold, boost);
         assert (numel(boxes) == 2);
         pseudo_boxes{index}       = boxes{1};
@@ -26,11 +27,15 @@ function [new_image_roidb_train] = weakly_generate_pseudo(conf, test_nets, image
     end
 
     new_image_roidb_train = [];
+    keep = [];
     for index = 1:num_roidb
         if (isempty(pseudo_boxes{index})), continue; end
         pos_boxes = {pseudo_boxes{index}.box};   pos_boxes = cat(1, pos_boxes{:});
         pos_class = {pseudo_boxes{index}.class}; pos_class = cat(1, pos_class{:});
         pos_score = {pseudo_boxes{index}.score}; pos_score = cat(1, pos_score{:});
+        %if (conf.debug && index <= num_roidb/2) %%% Print Images with boxes
+        %  weakly_debug(conf, image_roidb_train(index), pos_boxes, pos_regboxes, pos_cls, pos_scores, debug_dir);
+        %end
 
         rois        = image_roidb_train(index).boxes;
         rois        = [pos_boxes; rois];
@@ -49,6 +54,7 @@ function [new_image_roidb_train] = weakly_generate_pseudo(conf, test_nets, image
         new_image_roidb_train{end}.overlap      = overlap;
         new_image_roidb_train{end}.bbox_targets = bbox_targets;
         new_image_roidb_train{end}.pseudo_boxes = pseudo_boxes{index};
+        keep(end+1) = index;
     end
 
     new_image_roidb_train = cat(1, new_image_roidb_train{:});
@@ -105,8 +111,7 @@ function structs = generate_pseudo(conf, test_nets, image_roidb_train, num_class
       final_score = final_score + scores;
     end
   end
-  final_boxes = final_boxes ./ numel(test_nets); 
-  final_score = final_score ./ numel(test_nets);
+  final_boxes = final_boxes ./ numel(test_nets); final_score = final_score ./ numel(test_nets);
 
   [MX_per_class, ID_cls] = max(final_score);
   [MX_per_boxes, ID_bbx] = max(final_score, [], 2);

@@ -23,7 +23,6 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
     assert(iscell(models));
     assert(isfield(opts, 'box_param'));
     assert(isfield(conf, 'classes'));
-    assert(isfield(conf, 'allow_mul_ins'));
     assert(isfield(conf, 'per_class_sample'));
     assert(isfield(opts.box_param, 'bbox_means'));
     assert(isfield(opts.box_param, 'bbox_stds'));
@@ -99,7 +98,7 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
                         'Debug_GT_Cls', image_roidb_train(index).class(gt, :), ...
                         'Debug_GT_Box', image_roidb_train(index).boxes(gt, :), ...
                         'image_label', image_roidb_train(index).image_label);
-        if (sum(gt) == numel(Struct.image_label) || conf.allow_mul_ins)
+        if (sum(gt) == numel(Struct.image_label))
             filtered_image_roidb_train{end+1} = Struct;
         end
     end
@@ -157,7 +156,7 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
                                                 opts.box_param, conf, cache_dir, [models{idx}.name, '_Loop_0'], model_suffix, 'final', opts.step_epoch, opts.max_epoch);
     end
 
-    LIMIT = 6;
+    LIMIT = 5;
 
     pre_keep = false(numel(image_roidb_train), 1);
     for index = 1:numel(conf.base_select)
@@ -171,7 +170,7 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
             self_test_net = caffe.Net(models{idx}.test_net_def_file, 'test');
             self_test_net.copy_from(previous_model{idx});
             
-            [A_image_roidb_train, keep_id] =  weakly_generate_pseudo(conf, {oppo_test_net,self_test_net}, image_roidb_train, opts.box_param.bbox_means, opts.box_param.bbox_stds);
+            [A_image_roidb_train, keep_id] =  weakly_generate_co_pseudo(conf, {oppo_test_net,self_test_net}, image_roidb_train, opts.box_param.bbox_means, opts.box_param.bbox_stds);
 
             caffe.reset_all();
             oppo_train_solver = caffe.Solver(models{3-idx}.solver_def_file);
@@ -181,7 +180,7 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
 
             PER_Select            = boxes_per_class / min(boxes_per_class) * base_select;
 
-            [B_image_roidb_train, keep] = weakly_generate_v(conf, oppo_train_solver, self_train_solver, A_image_roidb_train, keep_id, pre_keep, PER_Select, LIMIT);
+            [B_image_roidb_train, keep] = weakly_generate_co_v(conf, oppo_train_solver, self_train_solver, A_image_roidb_train, keep_id, pre_keep, PER_Select, LIMIT);
 
             %% Draw
             if (conf.debug)

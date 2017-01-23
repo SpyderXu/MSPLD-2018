@@ -18,16 +18,16 @@ model.extra_para            = fullfile(pwd, 'models', 'pre_trained_models', 'box
 model.extra_para            = load(model.extra_para);
 
 % cache name
-opts.cache_name             = 'SS_EB';
+opts.cache_name             = 'EWSD_GoogleNet';
 % config
 conf                        = rfcn_config_ohem('image_means', model.mean_image);
 conf.classes                = model.extra_para.VOCopts.classes;
 conf.per_class_sample       = 3;
-conf.per_class_sample       = [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, ...
-                               3, 3, 3, 3, 3, 3, 3, 3, 3, 3];
+%conf.per_class_sample       = [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, ...
+%                               3, 3, 3, 3, 3, 3, 3, 3, 3, 3];
 box_param.bbox_means        = model.extra_para.bbox_means;
 box_param.bbox_stds         = model.extra_para.bbox_stds;
-conf.base_select            = [1, 1];
+conf.base_select            = [1, 1.3, 1.5, 2.0];
 conf.allow_mul_ins          = true;
 conf.debug                  = true;
 conf.rng_seed               = 5;
@@ -41,13 +41,13 @@ opts.cache_name             = [opts.cache_name, '_per-', num2str(mean(conf.per_c
 % train/test data
 fprintf('Loading dataset...')
 dataset                     = [];
-dataset                     = Dataset.voc2007_trainval_ss_eb(dataset, 'train', conf.use_flipped);
-dataset                     = Dataset.voc2007_test_ss_eb(dataset, 'test', false);
+dataset                     = Dataset.voc2007_trainval_ss(dataset, 'train', conf.use_flipped);
+dataset                     = Dataset.voc2007_test_ss(dataset, 'test', false);
 fprintf('Done.\n');
 
 fprintf('-------------------- TRAINING --------------------\n');
 train_time                  = tic;
-opts.rfcn_model             = weakly_train_v3(conf, dataset.imdb_train, dataset.roidb_train, ...
+opts.rfcn_model             = weakly_train_final(conf, dataset.imdb_train, dataset.roidb_train, ...
                                 'solver_def_file',  model.solver_def_file, ...
                                 'net_file',         model.net_file, ...
                                 'test_def_file',    model.test_net_def_file, ...
@@ -83,12 +83,9 @@ for iter = 0:numel(conf.base_select)
 end
 mAPs                = [];
 for index = 1:numel(rfcn_model)
-if index ~= numel(rfcn_model)
-  test_iteration = 1;
-else
-  test_iteration = 2;
-end
-mAPs(index)         = weakly_co_test(conf, dataset.imdb_test, dataset.roidb_test, ...
+  if index ~= numel(rfcn_model), test_iteration = 1;
+  else,                          test_iteration = 2; end
+  mAPs(index)       = weakly_co_test(conf, dataset.imdb_test, dataset.roidb_test, ...
                              'net_defs',         {model.test_net_def_file}, ...
                              'net_models',       rfcn_model(index), ...
                              'cache_name',       opts.cache_name,...

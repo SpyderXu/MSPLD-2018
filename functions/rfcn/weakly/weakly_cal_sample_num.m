@@ -1,6 +1,6 @@
 function MAX_SEL_PER_CLS = weakly_cal_sample_num(PER_Select, INIT_COUNT_PER_CLS, LIMIT)
   MIN_Select      = min(PER_Select);
-  INIT_COUNT_PER_CLS = INIT_COUNT_PER_CLS + 1;
+  INIT_COUNT_PER_CLS(find(INIT_COUNT_PER_CLS==0)) = 1;
   MAX_SEL_PER_CLS = (INIT_COUNT_PER_CLS / min(INIT_COUNT_PER_CLS)) * MIN_Select;
   MAX_SEL_PER_CLS = min(MAX_SEL_PER_CLS, INIT_COUNT_PER_CLS*LIMIT);
   

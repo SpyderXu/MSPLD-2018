@@ -31,15 +31,12 @@ conf.per_class_sample       = 3;
 %                               4, 4, 4, 2, 2, 4, 3, 2, 3, 3];
 box_param.bbox_means        = extra_para.bbox_means;
 box_param.bbox_stds         = extra_para.bbox_stds;
-conf.base_select            = [1, 1.2, 1.4];
-conf.allow_mul_ins          = true;
+conf.base_select            = [1, 1.1, 1.2];
 conf.debug                  = true;
 conf.rng_seed               = 5;
 max_epoch                   = 9;
 step_epoch                  = 7;
-if conf.allow_mul_ins,  multiselect_string = '_multi';
-else,                   multiselect_string = '_single'; end
-opts.cache_name             = [opts.cache_name, '_per-', num2str(conf.per_class_sample), multiselect_string, ...
+opts.cache_name             = [opts.cache_name, '_per-', num2str(conf.per_class_sample), ...
                                                 '_max_epoch', num2str(max_epoch), '_stepsize-', num2str(step_epoch), ...
                                                 '_seed-', num2str(conf.rng_seed)];
 % train/test data
@@ -92,18 +89,19 @@ fprintf('----------------------------------All Test-----------------------------
 rfcn_model          = cell(numel(models), numel(conf.base_select)+1);
 for iter = 0:numel(conf.base_select)
   for idx = 1:numel(models)
-    rfcn_model{idx, iter+1} = fullfile(pwd, 'output', 'weakly_cachedir' , opts.cache_name, 'voc_2007_trainval', [models{idx}.name, '_Loop_', num2str(iter), 'final.caffemodel']);
-	assert(exist(rfcn_model{idx, iter}, 'file') ~= 0, 'not found trained model');
+    rfcn_model{idx, iter+1} = fullfile(pwd, 'output', 'weakly_cachedir' , opts.cache_name, 'voc_2007_trainval', [models{idx}.name, '_Loop_', num2str(iter), '_final.caffemodel']);
+	assert(exist(rfcn_model{idx, iter+1}, 'file') ~= 0, 'not found trained model');
   end
 end
-S_mAPs              = zeros(numel(models), numel(test_iters));
+S_mAPs              = zeros(numel(models), size(rfcn_model,2));
 for index = 1:size(rfcn_model, 2)
   for idx = 1:numel(models)
     S_mAPs(idx, index) = weakly_co_test(conf, dataset.imdb_test, dataset.roidb_test, ...
                              'net_defs',         {models{idx}.test_net_def_file}, ...
                              'net_models',       rfcn_model(idx,index), ...
-                             'cache_name',       opts.cache_name,...
-                             'log_prefix',       [models{idx}.name, '_', test_iters{index}, '_'],...
+                             'test_iteration',   1, ...
+                             'cache_name',       opts.cache_name, ...
+                             'log_prefix',       [models{idx}.name, '_', num2str(index-1), '_'], ...
                              'ignore_cache',     true);
   end
 end
