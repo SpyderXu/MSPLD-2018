@@ -27,7 +27,6 @@ function [new_image_roidb_train] = weakly_generate_v(conf, train_solver, image_r
   cur_keep = false(numel(image_roidb_train), 1);
   for cls = 1:numel(classes)
     [mx_score, mx_ids] = sort(Loss(:, cls));
-    %MX_IDS(:, cls) = mx_ids;
     for j = 1:min(number, SEL_PER_CLS(cls))
       if (mx_score(j) < 1)
         cur_keep( mx_ids(j) ) = true;

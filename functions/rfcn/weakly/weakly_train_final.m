@@ -175,11 +175,12 @@ function save_model_path = weakly_train_final(conf, imdb_train, roidb_train, var
 
         %% Self-Paced Sample
         %PER_Select               = boxes_per_class / min(boxes_per_class) * base_select;
-        PER_Select = zeros(numel(conf.classes), 1);
-        for iii = 1:numel(B_image_roidb_train)
-            class = B_image_roidb_train(iii).image_label;
-            for j = 1:numel(class), PER_Select(class(j)) = PER_Select(class(j)) + 1; end
-        end
+        PER_Select = [20, 10, 4, 5, 2, 4, 30, 13, 15, 4,...
+                      4, 10, 11, 7, 30, 7, 7, 10, 20, 10];
+        %for iii = 1:numel(B_image_roidb_train)
+        %    class = B_image_roidb_train(iii).image_label;
+        %    for j = 1:numel(class), PER_Select(class(j)) = PER_Select(class(j)) + 1; end
+        %end
         PER_Select = ceil(PER_Select / min(PER_Select) * base_select);
         caffe.reset_all();
         train_solver = caffe.Solver(opts.solver_def_file);

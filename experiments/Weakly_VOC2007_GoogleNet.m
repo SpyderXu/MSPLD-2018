@@ -23,11 +23,11 @@ opts.cache_name             = 'EWSD_GoogleNet';
 conf                        = rfcn_config_ohem('image_means', model.mean_image);
 conf.classes                = model.extra_para.VOCopts.classes;
 conf.per_class_sample       = 3;
-%conf.per_class_sample       = [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, ...
-%                               3, 3, 3, 3, 3, 3, 3, 3, 3, 3];
+conf.per_class_sample       = [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, ...
+                               3, 3, 3, 3, 3, 3, 3, 3, 3, 3];
 box_param.bbox_means        = model.extra_para.bbox_means;
 box_param.bbox_stds         = model.extra_para.bbox_stds;
-conf.base_select            = [1, 1.3, 1.5, 2.0];
+conf.base_select            = [1, 2, 3];
 conf.allow_mul_ins          = true;
 conf.debug                  = true;
 conf.rng_seed               = 5;

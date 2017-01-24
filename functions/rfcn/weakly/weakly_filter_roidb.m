@@ -34,6 +34,7 @@ function [new_image_roidb_train, keep] = weakly_filter_roidb(image_roidb_train, 
     idxess = idxess(sorted_idx(1:end-save_num));
     oks(idxess, 2) = false;
   end
+
   keep = find(oks(:,2));
   new_image_roidb_train = image_roidb_train(keep);
 
