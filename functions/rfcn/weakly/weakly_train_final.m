@@ -171,29 +171,22 @@ function save_model_path = weakly_train_final(conf, imdb_train, roidb_train, var
         A_image_roidb_train      = weakly_generate_pseudo(conf, {caffe_test_net}, image_roidb_train, opts.box_param.bbox_means, opts.box_param.bbox_stds);
 
         %% Filter Unreliable Image with pseudo-boxes
-        [B_image_roidb_train, ~] = weakly_filter_roidb(A_image_roidb_train, conf.classes, 20);
+        [B_image_roidb_train, ~] = weakly_filter_roidb(conf, caffe_test_net, A_image_roidb_train, 15);
+
+        if (conf.debug), inloop_debug(conf, B_image_roidb_train, ['Loop_', num2str(index), '_B']); end
 
         %% Self-Paced Sample
         %PER_Select               = boxes_per_class / min(boxes_per_class) * base_select;
         PER_Select = [20, 10, 4, 5, 2, 4, 30, 13, 15, 4,...
                       4, 10, 11, 7, 30, 7, 7, 10, 20, 10];
-        %for iii = 1:numel(B_image_roidb_train)
-        %    class = B_image_roidb_train(iii).image_label;
-        %    for j = 1:numel(class), PER_Select(class(j)) = PER_Select(class(j)) + 1; end
-        %end
         PER_Select = ceil(PER_Select / min(PER_Select) * base_select);
         caffe.reset_all();
         train_solver = caffe.Solver(opts.solver_def_file);
         train_solver.net.copy_from(previous_model);
         C_image_roidb_train      = weakly_generate_v(conf, train_solver, B_image_roidb_train, PER_Select, 6);
 
-        %% Draw
-        if (conf.debug)
-            debug_dir            = ['Loop_', num2str(index)];
-            for iii = 1:numel(C_image_roidb_train)
-                weakly_debug_final(conf, C_image_roidb_train(iii), debug_dir);
-            end
-        end
+        if (conf.debug), inloop_debug(conf, C_image_roidb_train, ['Loop_', num2str(index), '_C']); end
+
         new_image_roidb_train = [warmup_roidb_train; C_image_roidb_train];
 
         fprintf('.....weakly_supervised train, prepare cost %.1f s ...................\n', toc(begin__time));
@@ -209,4 +202,10 @@ function save_model_path = weakly_train_final(conf, imdb_train, roidb_train, var
     diary off;
     caffe.reset_all(); 
     rng(prev_rng);
+end
+
+function inloop_debug(conf, image_roidb_train, debug_dir)
+  for iii = 1:numel(image_roidb_train)
+    weakly_debug_final(conf, image_roidb_train(iii), debug_dir);
+  end
 end
