@@ -183,12 +183,13 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
             self_train_solver = caffe.Solver(models{idx}.solver_def_file);
             self_train_solver.net.copy_from(previous_model{idx});
 
-            PER_Select            = boxes_per_class / min(boxes_per_class) * base_select;
+            %PER_Select            = boxes_per_class / min(boxes_per_class) * base_select;
+            PER_Select = [20, 10,  4, 5,  2, 4, 30, 13, 15,  4,...
+                           4, 10, 11, 7, 30, 7,  7, 10, 20, 10];
 
-            [C_image_roidb_train, keep] = weakly_generate_co_v(conf, oppo_train_solver, self_train_solver, B_image_roidb_train, keep_id, pre_keep, PER_Select, LIMIT);
+            [C_image_roidb_train, cur_keep] = weakly_generate_co_v(conf, oppo_train_solver, self_train_solver, B_image_roidb_train, keep_id, pre_keep, PER_Select, LIMIT);
 
-            pre_keep = false(numel(image_roidb_train), 1);
-            pre_keep(keep) = true;
+            pre_keep = cur_keep;
             %% Draw
             if (conf.debug), inloop_debug(conf, C_image_roidb_train, ['Loop_', models{idx}.name, '_', num2str(index), '_C']); end
 

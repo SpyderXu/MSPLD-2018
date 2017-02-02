@@ -56,7 +56,7 @@ function [new_image_roidb_train] = weakly_generate_v(conf, train_solver, image_r
     for j = 1:numel(class), missd_count(class(j)) = missd_count(class(j)) + 1; end
     for j = 1:numel(image_label), total_count(image_label(j)) = total_count(image_label(j)) + 1; end
   end
-  
+  %% Print some debug information
   for Cls = 1:numel(classes)
     loss = Loss(cur_keep, Cls);
     loss = loss(find(loss~=inf));

@@ -48,9 +48,10 @@ function [new_image_roidb_train, ret_keep] = weakly_generate_co_v(conf, oppo_tra
   ret_keep = false(numel(pre_keep), 1);
   ret_keep(keep_id) = cur_keep;
 
-  
   final_count = zeros(numel(classes), 1);
   trueo_count = zeros(numel(classes), 1);
+  missd_count = zeros(numel(classes), 1);
+  total_count = zeros(numel(classes), 1);
   for i = 1:numel(new_image_roidb_train)
     image_label = new_image_roidb_train(i).image_label;
     class = {new_image_roidb_train(i).pseudo_boxes.class};
@@ -61,16 +62,20 @@ function [new_image_roidb_train, ret_keep] = weakly_generate_co_v(conf, oppo_tra
         trueo_count(class(j)) = trueo_count(class(j)) + 1;
       end
     end
+    class = setdiff(image_label, class);
+    for j = 1:numel(class), missd_count(class(j)) = missd_count(class(j)) + 1; end
+    for j = 1:numel(image_label), total_count(image_label(j)) = total_count(image_label(j)) + 1; end
   end
-  
+  %% Print some debug information
   for Cls = 1:numel(classes)
     loss = Loss(cur_keep, Cls);
     loss = loss(find(loss~=inf));
-    fprintf('[%02d] [%12s] : [count : %3d / should : %3d / select : %3d] [FINAL= (OK) %3d/%3d] : Accuracy : %.4f :| loss : [%.2f, %.2f]\n', Cls, classes{Cls}, ...
-                 count_per_class(Cls), ceil(PER_Select(Cls)), SEL_PER_CLS(Cls), trueo_count(Cls), final_count(Cls), ...
+    fprintf('[%02d] [%12s] : [count : %3d / should : %3d / select : %3d] [FINAL= (OK) %3d/%3d Mis: %3d/%3d] : Accuracy : %.4f :| loss : [%.2f, %.2f]\n', Cls, classes{Cls}, ...
+                 count_per_class(Cls), ceil(PER_Select(Cls)), SEL_PER_CLS(Cls), trueo_count(Cls), final_count(Cls), missd_count(Cls), total_count(Cls), ...
                  trueo_count(Cls) / final_count(Cls), min(loss), max(loss));
   end
-  fprintf('weakly_generate_v end : accuracy : %.3f (%4d / %4d) \n', sum(trueo_count) / sum(final_count), sum(trueo_count), sum(final_count));
+  fprintf('weakly_generate_v end : [accuracy: %.3f (%4d/%4d)], [miss: (%.3f,%.3f) (%4d/%4d)] , cost %.1f s\n', sum(trueo_count) / sum(final_count), sum(trueo_count), sum(final_count), ...
+            sum(missd_count)/sum(total_count), mean(missd_count./total_count), sum(missd_count), sum(total_count), toc(begin_time));
 
 end
 
