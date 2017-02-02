@@ -50,3 +50,85 @@ function model_path = weakly_supervised(roidb_train, solver_file, model_file, va
     weakly_snapshot(caffe_solver, box_param.bbox_means, box_param.bbox_stds, model_path);
 
 end
+
+function [shuffled_inds, sub_inds] = weakly_generate_random_minibatch(shuffled_inds, image_roidb_train, ims_per_batch)
+
+    % shuffle training data per batch
+    if isempty(shuffled_inds)
+        % make sure each minibatch, only has horizontal images or vertical
+        % images, to save gpu memory
+
+        hori_image_inds = arrayfun(@(x) x.im_size(2) >= x.im_size(1), image_roidb_train, 'UniformOutput', true);
+        vert_image_inds = ~hori_image_inds;
+        hori_image_inds = find(hori_image_inds);
+        vert_image_inds = find(vert_image_inds);
+
+        % random perm
+        lim = floor(length(hori_image_inds) / ims_per_batch) * ims_per_batch;
+        hori_image_inds = hori_image_inds(randperm(length(hori_image_inds), lim));
+        lim = floor(length(vert_image_inds) / ims_per_batch) * ims_per_batch;
+        vert_image_inds = vert_image_inds(randperm(length(vert_image_inds), lim));
+
+        % combine sample for each ims_per_batch 
+        hori_image_inds = reshape(hori_image_inds, ims_per_batch, []);
+        vert_image_inds = reshape(vert_image_inds, ims_per_batch, []);
+
+        shuffled_inds = [hori_image_inds, vert_image_inds];
+        shuffled_inds = shuffled_inds(:, randperm(size(shuffled_inds, 2)));
+
+        shuffled_inds = num2cell(shuffled_inds, 1);
+    end
+
+    if nargout > 1
+        % generate minibatch training data
+        sub_inds = shuffled_inds{1};
+        assert(length(sub_inds) == ims_per_batch);
+        shuffled_inds(1) = [];
+    end
+end
+
+function weakly_snapshot(caffe_solver, bbox_means, bbox_stds, model_path)
+%    file_name = [file_name, '.caffemodel'];
+    bbox_pred_layer_name = 'rfcn_bbox';
+    weights = caffe_solver.net.params(bbox_pred_layer_name, 1).get_data();
+    biase = caffe_solver.net.params(bbox_pred_layer_name, 2).get_data();
+    weights_back = weights;
+    biase_back = biase;
+
+    rep_time = size(weights, 4)/length(bbox_means(:));
+
+    bbox_stds_flatten = bbox_stds';
+    bbox_stds_flatten = bbox_stds_flatten(:);
+    bbox_stds_flatten = repmat(bbox_stds_flatten, [1,rep_time])';
+    bbox_stds_flatten = bbox_stds_flatten(:);
+    bbox_stds_flatten = permute(bbox_stds_flatten, [4,3,2,1]);
+
+    bbox_means_flatten = bbox_means';
+    bbox_means_flatten = bbox_means_flatten(:);
+    bbox_means_flatten = repmat(bbox_means_flatten, [1,rep_time])';
+    bbox_means_flatten = bbox_means_flatten(:);
+    bbox_means_flatten = permute(bbox_means_flatten, [4,3,2,1]);
+
+    % merge bbox_means, bbox_stds into the model
+    weights = bsxfun(@times, weights, bbox_stds_flatten); % weights = weights * stds; 
+    biase = biase .* bbox_stds_flatten(:) + bbox_means_flatten(:); % bias = bias * stds + means;
+
+    caffe_solver.net.set_params_data(bbox_pred_layer_name, 1, weights);
+    caffe_solver.net.set_params_data(bbox_pred_layer_name, 2, biase);
+
+    %model_path = fullfile(cache_dir, file_name);
+    caffe_solver.net.save(model_path);
+    fprintf('Saved as %s\n', model_path);
+
+    % restore net to original state
+    caffe_solver.net.set_params_data(bbox_pred_layer_name, 1, weights_back);
+    caffe_solver.net.set_params_data(bbox_pred_layer_name, 2, biase_back);
+end
+
+function weakly_show_state(iter, max_iter, train_results)
+    fprintf('\n------------------------ %10s Iteration %4d / %4d -------------------------\n', datestr(datevec(now()), '[yyyy:mm:dd]@[HH:MM:SS]'), iter, max_iter);
+    fprintf('Training : accuracy %.3g, loss (cls %.3g, reg %.3g)\n', ...
+        mean(train_results.accuarcy.data), ...
+        mean(train_results.loss_cls.data), ...
+        mean(train_results.loss_bbox.data));
+end

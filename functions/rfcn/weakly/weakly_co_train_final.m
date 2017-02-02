@@ -79,6 +79,7 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
     %[image_roidb_train] = score_prepare_image_roidb(conf, opts.imdb_train, opts.roidb_train);
     [image_roidb_train] = rfcn_prepare_image_roidb(conf, opts.imdb_train, opts.roidb_train, opts.box_param.bbox_means, opts.box_param.bbox_stds);
     [warmup_roidb_train, image_roidb_train] = weakly_sample_train(image_roidb_train, conf.per_class_sample, opts.imdb_train{1}.flip);
+    %Draw Warmup -- Debug
     %weakly_draw_warm(conf, warmup_roidb_train, 'sampled_warmup');
     fprintf('Done.\n');
     
@@ -163,14 +164,18 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
         base_select = conf.base_select(index);
 
         for idx = 1:numel(models)
-            fprintf('-------Start Loop %2d == %8s ==with base_select : %4.2f-------\n', index, models{idx}.name, base_select);
+            fprintf('\n-------Start Loop %2d == %8s ==with base_select : %4.2f-------\n', index, models{idx}.name, base_select);
             caffe.reset_all();
             oppo_test_net = caffe.Net(models{3-idx}.test_net_def_file, 'test');
             oppo_test_net.copy_from(previous_model{3-idx});
             self_test_net = caffe.Net(models{idx}.test_net_def_file, 'test');
             self_test_net.copy_from(previous_model{idx});
             
-            [A_image_roidb_train, keep_id] =  weakly_generate_co_pseudo(conf, {oppo_test_net,self_test_net}, image_roidb_train, opts.box_param.bbox_means, opts.box_param.bbox_stds);
+            [A_image_roidb_train, A_keep_id] =  weakly_generate_pseudo(conf, {oppo_test_net,self_test_net}, image_roidb_train, opts.box_param.bbox_means, opts.box_param.bbox_stds);
+
+            %% Filter Unreliable Image with pseudo-boxes
+            [B_image_roidb_train, B_keep_id] = weakly_filter_roidb(conf, self_test_net, A_image_roidb_train, 15);
+            keep_id = A_keep_id(B_keep_id);
 
             caffe.reset_all();
             oppo_train_solver = caffe.Solver(models{3-idx}.solver_def_file);
@@ -180,17 +185,14 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
 
             PER_Select            = boxes_per_class / min(boxes_per_class) * base_select;
 
-            [B_image_roidb_train, keep] = weakly_generate_co_v(conf, oppo_train_solver, self_train_solver, A_image_roidb_train, keep_id, pre_keep, PER_Select, LIMIT);
+            [C_image_roidb_train, keep] = weakly_generate_co_v(conf, oppo_train_solver, self_train_solver, B_image_roidb_train, keep_id, pre_keep, PER_Select, LIMIT);
 
+            pre_keep = false(numel(image_roidb_train), 1);
+            pre_keep(keep) = true;
             %% Draw
-            if (conf.debug)
-              debug_dir             = [models{idx}.name, '_Loop_', num2str(index)];
-              for iii = 1:numel(B_image_roidb_train)
-                weakly_debug_final(conf, B_image_roidb_train(iii), debug_dir);
-              end
-            end
+            if (conf.debug), inloop_debug(conf, C_image_roidb_train, ['Loop_', models{idx}.name, '_', num2str(index), '_C']); end
 
-            new_image_roidb_train = [warmup_roidb_train; B_image_roidb_train];
+            new_image_roidb_train = [warmup_roidb_train; C_image_roidb_train];
             
             previous_model{idx}   = weakly_supervised(new_image_roidb_train, models{idx}.solver_def_file, models{idx}.net_file, opts.val_interval, opts.snapshot_interval, ...
                                          opts.box_param, conf, cache_dir, [models{idx}.name, '_Loop_', num2str(index)], model_suffix, 'final', opts.step_epoch, opts.max_epoch);
@@ -198,8 +200,6 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
 
     end
 
-
-    %weakly_snapshot(caffe_solver, opts.box_param.bbox_means, opts.box_param.bbox_stds, cache_dir, sprintf('iter_%d', iter_));
     save_model_path    = cell(numel(models), 1);
     for idx = 1:numel(models)
         weakly_final_model   = sprintf('%s_final%s', models{idx}.name, model_suffix);
@@ -213,3 +213,10 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
     caffe.reset_all(); 
     rng(prev_rng);
 end
+
+function inloop_debug(conf, image_roidb_train, debug_dir)
+  for iii = 1:numel(image_roidb_train)
+    weakly_debug_final(conf, image_roidb_train(iii), debug_dir);
+  end
+end
+

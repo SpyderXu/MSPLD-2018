@@ -25,7 +25,6 @@ function save_model_path = weakly_train_final(conf, imdb_train, roidb_train, var
     opts = ip.Results;
     assert(isfield(opts, 'box_param'));
     assert(isfield(conf, 'classes'));
-    assert(isfield(conf, 'allow_mul_ins'));
     assert(isfield(conf, 'per_class_sample'));
     assert(isfield(conf, 'debug'));
     assert(isfield(conf, 'base_select'));
@@ -96,7 +95,7 @@ function save_model_path = weakly_train_final(conf, imdb_train, roidb_train, var
                         'Debug_GT_Cls', image_roidb_train(index).class(gt, :), ...
                         'Debug_GT_Box', image_roidb_train(index).boxes(gt, :), ...
                         'image_label',image_roidb_train(index).image_label);
-        if (sum(gt) == numel(Struct.image_label) || conf.allow_mul_ins)
+        if (sum(gt) == numel(Struct.image_label))
             filtered_image_roidb_train{end+1} = Struct;
         end
     end
@@ -168,7 +167,7 @@ function save_model_path = weakly_train_final(conf, imdb_train, roidb_train, var
         caffe.reset_all();
         caffe_test_net = caffe.Net(opts.test_def_file, 'test');
         caffe_test_net.copy_from(previous_model);
-        A_image_roidb_train      = weakly_generate_pseudo(conf, {caffe_test_net}, image_roidb_train, opts.box_param.bbox_means, opts.box_param.bbox_stds);
+        [A_image_roidb_train, ~] = weakly_generate_pseudo(conf, {caffe_test_net}, image_roidb_train, opts.box_param.bbox_means, opts.box_param.bbox_stds);
 
         %% Filter Unreliable Image with pseudo-boxes
         [B_image_roidb_train, ~] = weakly_filter_roidb(conf, caffe_test_net, A_image_roidb_train, 15);
@@ -194,7 +193,6 @@ function save_model_path = weakly_train_final(conf, imdb_train, roidb_train, var
                                                   opts.box_param, conf, cache_dir, ['Loop_', num2str(index)], model_suffix, 'final', opts.step_epoch, opts.max_epoch);
     end
     
-    % final weakly_snapshot
     weakly_final_model = sprintf('final%s', model_suffix);
     save_model_path    = fullfile(cache_dir, weakly_final_model);
     copyfile(previous_model, save_model_path);

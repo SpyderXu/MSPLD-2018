@@ -27,8 +27,6 @@ extra_para                  = load(fullfile(pwd, 'models', 'pre_trained_models',
 conf                        = rfcn_config_ohem('image_means', mean_image);
 conf.classes                = extra_para.VOCopts.classes;
 conf.per_class_sample       = 3;
-%conf.per_class_sample       = [2, 2, 2, 4, 4, 2, 2, 2, 2, 4, ...
-%                               4, 4, 4, 2, 2, 4, 3, 2, 3, 3];
 box_param.bbox_means        = extra_para.bbox_means;
 box_param.bbox_stds         = extra_para.bbox_stds;
 conf.base_select            = [1, 1.1, 1.2];

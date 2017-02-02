@@ -1,4 +1,4 @@
-function [new_image_roidb_train] = weakly_generate_pseudo(conf, test_nets, image_roidb_train, bbox_means, bbox_stds)
+function [new_image_roidb_train, keep] = weakly_generate_pseudo(conf, test_nets, image_roidb_train, bbox_means, bbox_stds)
     assert (conf.flip); % argument
 
     num_roidb        = numel(image_roidb_train);       assert (rem(num_roidb,2) == 0);
@@ -26,6 +26,7 @@ function [new_image_roidb_train] = weakly_generate_pseudo(conf, test_nets, image
     end
 
     new_image_roidb_train = [];
+    keep = [];
     for index = 1:num_roidb
         if (isempty(pseudo_boxes{index})), continue; end
         pos_boxes = {pseudo_boxes{index}.box};   pos_boxes = cat(1, pos_boxes{:});
@@ -49,6 +50,7 @@ function [new_image_roidb_train] = weakly_generate_pseudo(conf, test_nets, image
         new_image_roidb_train{end}.overlap      = overlap;
         new_image_roidb_train{end}.bbox_targets = bbox_targets;
         new_image_roidb_train{end}.pseudo_boxes = pseudo_boxes{index};
+        keep(end+1) = index;
     end
 
     new_image_roidb_train = cat(1, new_image_roidb_train{:});
