@@ -13,9 +13,11 @@ model.solver_def_file       = fullfile(pwd, 'models', 'rfcn_prototxts', 'GoogleN
 model.test_net_def_file     = fullfile(pwd, 'models', 'rfcn_prototxts', 'GoogleNet_OHEM', 'test.prototxt');
 
 model.net_file              = fullfile(pwd, 'models', 'pre_trained_models', 'GoogleNet', 'bvlc_googlenet.caffemodel');
-model.mean_image            = fullfile(pwd, 'models', 'pre_trained_models', 'GoogleNet', 'mean_image');
+model.mean_image            = fullfile(pwd, 'models', 'pre_trained_models', 'GoogleNet', 'mean_image.mat');
 model.extra_para            = fullfile(pwd, 'models', 'pre_trained_models', 'box_param.mat');
 model.extra_para            = load(model.extra_para);
+assert(exist(model.net_file, 'file') ~= 0, 'GoogleNet Pretrain Model Not Found');
+assert(exist(model.mean_image, 'file') ~= 0, 'GoogleNet Mean Image Not Found');
 
 % cache name
 opts.cache_name             = 'EWSD_GoogleNet';
@@ -31,8 +33,8 @@ conf.base_select            = [1, 2];
 conf.allow_mul_ins          = true;
 conf.debug                  = true;
 conf.rng_seed               = 5;
-max_epoch                   = 9;
-step_epoch                  = 7;
+max_epoch                   = 10;
+step_epoch                  = 9;
 if conf.allow_mul_ins,  multiselect_string = '_multi'; 
 else,                   multiselect_string = '_single'; end
 opts.cache_name             = [opts.cache_name, '_per-', num2str(mean(conf.per_class_sample)), multiselect_string, ...

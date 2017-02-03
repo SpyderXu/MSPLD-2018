@@ -1,11 +1,10 @@
-function [new_image_roidb_train, keep] = weakly_generate_pseudo(conf, test_nets, image_roidb_train, bbox_means, bbox_stds)
+function [new_image_roidb_train, keep] = weakly_generate_pseudo(conf, test_nets, image_roidb_train, bbox_means, bbox_stds, boost)
     assert (conf.flip); % argument
 
     num_roidb        = numel(image_roidb_train);       assert (rem(num_roidb,2) == 0);
     num_classes      = numel(conf.classes);
     tic;
     thresh_hold = 0.2;
-    boost = false;
 
     for index = 1:num_roidb
         assert (isempty(image_roidb_train(index).overlap));
@@ -156,11 +155,10 @@ function [boxes, scores] = w_im_detect(conf, test_net, image, in_boxes, max_rois
   if (boost)
     [~, mx_id] = max(scores, [], 2);
     mx_id = (mx_id-1)*4;
-    add_boxes = single(zeros(size(pre_boxes)));
-    num_boxes = size(boxes,1);
-    dim_boxes = size(boxes,2);
-    offset = (0:num_boxes-1)*dim_boxes + mx_id;
-    for coor = 1:4, add_boxes(:, coor) = boxes(offset+coor); end
+    add_boxes = single(zeros(size(in_boxes)));
+    parfor box_id = 1:size(in_boxes,1)
+        for coor = 1:4, add_boxes(box_id, coor) = boxes(box_id, mx_id(box_id)+coor); end
+    end
     in_boxes = (in_boxes + add_boxes) ./ 2;
     [boxes, scores] = weakly_im_detect(conf, test_net, image, in_boxes, max_rois_num_in_gpu);
   end

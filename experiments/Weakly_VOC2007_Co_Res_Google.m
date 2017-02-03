@@ -13,15 +13,18 @@ models{1}.solver_def_file   = fullfile(pwd, 'models', 'rfcn_prototxts', 'ResNet-
 models{1}.test_net_def_file = fullfile(pwd, 'models', 'rfcn_prototxts', 'ResNet-50L_OHEM_res3a', 'test.prototxt');
 models{1}.net_file          = fullfile(pwd, 'models', 'pre_trained_models', 'ResNet-50L', 'ResNet-50-model.caffemodel');
 models{1}.name              = 'ResNet-50';
+assert(exist(models{1}.net_file, 'file') ~= 0, [models{1}.name ' Pretrain Model Not Found']);
 
 models{2}.solver_def_file   = fullfile(pwd, 'models', 'rfcn_prototxts', 'GoogleNet_OHEM', 'solver_lr1_3.prototxt');
 models{2}.test_net_def_file = fullfile(pwd, 'models', 'rfcn_prototxts', 'GoogleNet_OHEM', 'test.prototxt');
 models{2}.net_file          = fullfile(pwd, 'models', 'pre_trained_models', 'GoogleNet', 'bvlc_googlenet.caffemodel');
 models{2}.name              = 'GoogleNet';
+assert(exist(models{2}.net_file, 'file') ~= 0, [models{2}.name ' Pretrain Model Not Found']);
 
 % cache name
 opts.cache_name             = 'rfcn_Co_Res50_Google';
-mean_image                  = fullfile(pwd, 'models', 'pre_trained_models', 'ResNet-50L', 'mean_image');
+mean_image                  = fullfile(pwd, 'models', 'pre_trained_models', 'ResNet-50L', 'mean_image.mat');
+assert(exist(mean_image, 'file') ~= 0, 'ImageNet Mean Image Not Found');
 extra_para                  = load(fullfile(pwd, 'models', 'pre_trained_models', 'box_param.mat'));
 % config
 conf                        = rfcn_config_ohem('image_means', mean_image);
@@ -29,7 +32,7 @@ conf.classes                = extra_para.VOCopts.classes;
 conf.per_class_sample       = 3;
 box_param.bbox_means        = extra_para.bbox_means;
 box_param.bbox_stds         = extra_para.bbox_stds;
-conf.base_select            = [1, 1.1, 1.2];
+conf.base_select            = [1, 1.3, 1.8, 2.5];
 conf.debug                  = true;
 conf.rng_seed               = 5;
 max_epoch                   = 9;

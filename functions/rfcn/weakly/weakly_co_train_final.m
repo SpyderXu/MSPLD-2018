@@ -158,6 +158,7 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
     end
 
     LIMIT = 5;
+    boost = true;
 
     pre_keep = false(numel(image_roidb_train), 1);
     for index = 1:numel(conf.base_select)
@@ -171,7 +172,7 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
             self_test_net = caffe.Net(models{idx}.test_net_def_file, 'test');
             self_test_net.copy_from(previous_model{idx});
             
-            [A_image_roidb_train, A_keep_id] =  weakly_generate_pseudo(conf, {oppo_test_net,self_test_net}, image_roidb_train, opts.box_param.bbox_means, opts.box_param.bbox_stds);
+            [A_image_roidb_train, A_keep_id] =  weakly_generate_pseudo(conf, {oppo_test_net,self_test_net}, image_roidb_train, opts.box_param.bbox_means, opts.box_param.bbox_stds, boost);
 
             %% Filter Unreliable Image with pseudo-boxes
             [B_image_roidb_train, B_keep_id] = weakly_filter_roidb(conf, self_test_net, A_image_roidb_train, 15);

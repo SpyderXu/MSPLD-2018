@@ -11,7 +11,7 @@ function [new_image_roidb_train, ret_keep] = weakly_generate_co_v(conf, oppo_tra
   smallest = 20;
 
   count_per_class = zeros(numel(classes), 1);
-  tic;
+  begin_time = tic;
   for idx = 1:number
     if (rem(idx, 500) == 0 || idx == number), fprintf('weakly_generate_v : handle %4d / %4d image_roidb_train, cost %.2f s\n', idx, number, toc); end
     ok = check_filter_img(image_roidb_train(idx).pseudo_boxes, smallest);
@@ -29,7 +29,8 @@ function [new_image_roidb_train, ret_keep] = weakly_generate_co_v(conf, oppo_tra
       Loss(idx, class(j)) = loss;
     end
   end
-  SEL_PER_CLS = weakly_cal_sample_num(PER_Select, count_per_class, LIMIT);
+  %SEL_PER_CLS = weakly_cal_sample_num(PER_Select, count_per_class, LIMIT);
+  SEL_PER_CLS = PER_Select;
   cur_keep = false(numel(image_roidb_train), 1);
   %MX_IDS   = zeros(numel(pre_keep), numel(classes));
   for cls = 1:numel(classes)

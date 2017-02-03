@@ -167,7 +167,7 @@ function save_model_path = weakly_train_final(conf, imdb_train, roidb_train, var
         caffe.reset_all();
         caffe_test_net = caffe.Net(opts.test_def_file, 'test');
         caffe_test_net.copy_from(previous_model);
-        [A_image_roidb_train, ~] = weakly_generate_pseudo(conf, {caffe_test_net}, image_roidb_train, opts.box_param.bbox_means, opts.box_param.bbox_stds);
+        [A_image_roidb_train, ~] = weakly_generate_pseudo(conf, {caffe_test_net}, image_roidb_train, opts.box_param.bbox_means, opts.box_param.bbox_stds, false);
 
         %% Filter Unreliable Image with pseudo-boxes
         [B_image_roidb_train, ~] = weakly_filter_roidb(conf, caffe_test_net, A_image_roidb_train, 15);
