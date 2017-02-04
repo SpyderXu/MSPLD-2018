@@ -170,7 +170,7 @@ function save_model_path = weakly_train_final(conf, imdb_train, roidb_train, var
         [A_image_roidb_train, ~] = weakly_generate_pseudo(conf, {caffe_test_net}, image_roidb_train, opts.box_param.bbox_means, opts.box_param.bbox_stds, false);
 
         %% Filter Unreliable Image with pseudo-boxes
-        [B_image_roidb_train, ~] = weakly_filter_roidb(conf, caffe_test_net, A_image_roidb_train, 15);
+        [B_image_roidb_train, ~] = weakly_filter_roidb(conf, {caffe_test_net}, A_image_roidb_train, 15);
 
         if (conf.debug), inloop_debug(conf, B_image_roidb_train, ['Loop_', num2str(index), '_B']); end
 
@@ -191,6 +191,13 @@ function save_model_path = weakly_train_final(conf, imdb_train, roidb_train, var
         fprintf('.....weakly_supervised train, prepare cost %.1f s ...................\n', toc(begin__time));
         previous_model        = weakly_supervised(new_image_roidb_train, opts.solver_def_file, opts.net_file, opts.val_interval, opts.snapshot_interval, ...
                                                   opts.box_param, conf, cache_dir, ['Loop_', num2str(index)], model_suffix, 'final', opts.step_epoch, opts.max_epoch);
+
+        %%% Check Whether Stop
+        if (numel(B_image_roidb_train) * 0.9 <= sum(PER_Select))
+            fprintf('Stop iteration due to reach max numbers : %d\n', ceil(numel(B_image_roidb_train) * 0.9));
+            break;
+        end
+
     end
     
     weakly_final_model = sprintf('final%s', model_suffix);

@@ -1,4 +1,4 @@
-function [new_image_roidb_train, keep] = weakly_filter_roidb(conf, caffe_test_net, image_roidb_train, smallest)
+function [new_image_roidb_train, keep] = weakly_filter_roidb(conf, test_nets, image_roidb_train, smallest)
   classes = conf.classes;
   num = numel(image_roidb_train); num_class = numel(classes);
   oks = false(num, 3);            begin_time = tic;
@@ -8,7 +8,7 @@ function [new_image_roidb_train, keep] = weakly_filter_roidb(conf, caffe_test_ne
   for idx = 1:num
     oks(idx, 1) = check_filter_img(image_roidb_train(idx).pseudo_boxes, smallest);
     if (oks(idx, 1)) 
-      ok = check_multibox(conf, caffe_test_net, image_roidb_train(idx), multibox_thresh);
+      ok = check_multibox(conf, test_nets, image_roidb_train(idx), multibox_thresh);
       if (all(ok) == false), oks(idx, 1) = false; end
     end
   end
@@ -96,13 +96,23 @@ function ok = check_filter_img(pseudo_boxes, smallest)
   end
 end
 
-function ok = check_multibox(conf, caffe_test_net, roidb_train, thresh)
+function ok = check_multibox(conf, test_nets, roidb_train, thresh)
   max_rois_num_in_gpu = 10000;
   boxes = {roidb_train.pseudo_boxes.box}; boxes = cat(1, boxes{:});
   cls   = {roidb_train.pseudo_boxes.class}; cls = cat(1, cls{:});
   ori_score = {roidb_train.pseudo_boxes.score}; ori_score = cat(1, ori_score{:});
   num_boxes = size(boxes, 1);
-  [Tboxes, Tscores] = weakly_im_detect(conf, caffe_test_net, imread(roidb_train.image_path), multibox(boxes), max_rois_num_in_gpu);
+  Fboxes = []; Fscores = [];
+  for j = 1:numel(test_nets)
+    [Tboxes, Tscores] = weakly_im_detect(conf, test_nets{j}, imread(roidb_train.image_path), multibox(boxes), max_rois_num_in_gpu);
+    if (j == 1)
+      Fboxes = Tboxes; Fscores = Tscores;
+    else
+      Fboxes = Fboxes + Tboxes; Fscores = Fscores + Tscores;
+    end
+  end
+  Fboxes = Fboxes / numel(test_nets);
+  Fscores = Fscores / numel(test_nets);
   ok = true(num_boxes, 1);
   for idx = 1:4
     cscores = Tscores((idx-1)*num_boxes+1 : idx*num_boxes, :);

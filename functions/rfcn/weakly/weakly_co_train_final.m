@@ -158,7 +158,7 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
     end
 
     LIMIT = 5;
-    boost = true;
+    boost = false;
 
     pre_keep = false(numel(image_roidb_train), 1);
     for index = 1:numel(conf.base_select)
@@ -175,7 +175,7 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
             [A_image_roidb_train, A_keep_id] =  weakly_generate_pseudo(conf, {oppo_test_net,self_test_net}, image_roidb_train, opts.box_param.bbox_means, opts.box_param.bbox_stds, boost);
 
             %% Filter Unreliable Image with pseudo-boxes
-            [B_image_roidb_train, B_keep_id] = weakly_filter_roidb(conf, self_test_net, A_image_roidb_train, 15);
+            [B_image_roidb_train, B_keep_id] = weakly_filter_roidb(conf, {oppo_test_net,self_test_net}, A_image_roidb_train, 15);
             keep_id = A_keep_id(B_keep_id);
 
             caffe.reset_all();
@@ -187,6 +187,7 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
             %PER_Select            = boxes_per_class / min(boxes_per_class) * base_select;
             PER_Select = [20, 10,  4, 5,  2, 4, 30, 13, 15,  4,...
                            4, 10, 11, 7, 30, 7,  7, 10, 20, 10];
+            PER_Select = ceil(PER_Select / min(PER_Select) * base_select);
 
             [C_image_roidb_train, cur_keep] = weakly_generate_co_v(conf, oppo_train_solver, self_train_solver, B_image_roidb_train, keep_id, pre_keep, PER_Select, LIMIT);
 
@@ -198,6 +199,12 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
             
             previous_model{idx}   = weakly_supervised(new_image_roidb_train, models{idx}.solver_def_file, models{idx}.net_file, opts.val_interval, opts.snapshot_interval, ...
                                          opts.box_param, conf, cache_dir, [models{idx}.name, '_Loop_', num2str(index)], model_suffix, 'final', opts.step_epoch, opts.max_epoch);
+        end
+
+        %%% Check Whether Stop
+        if (numel(B_image_roidb_train) * 0.9 <= sum(PER_Select)) 
+            fprintf('Stop iteration due to reach max numbers : %d\n', ceil(numel(B_image_roidb_train) * 0.9));
+            break;
         end
 
     end
