@@ -76,11 +76,12 @@ fprintf('Training Cost : %.1f s, Test Cost : %.1f s, mAP : %.2f\n', train_time, 
 
 fprintf('----------------------------------All Test-----------------------------\n');
 
+imdbs_name          = cell2mat(cellfun(@(x) x.name, dataset.imdb_train,'UniformOutput', false));
 test_iters          = [];
 rfcn_model          = [];
 for iter = 0:numel(conf.base_select)
   test_iters{end+1} = ['Loop_', num2str(iter)];
-  rfcn_model{end+1} = fullfile(pwd, 'output', 'weakly_cachedir' , opts.cache_name, 'voc_2007_trainval', [test_iters{end}, '_final.caffemodel']);
+  rfcn_model{end+1} = fullfile(pwd, 'output', 'weakly_cachedir' , opts.cache_name, imdbs_name, [test_iters{end}, '_final.caffemodel']);
   assert(exist(rfcn_model{end}, 'file') ~= 0, 'not found trained model');
 end
 mAPs                = [];

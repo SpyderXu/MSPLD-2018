@@ -22,7 +22,7 @@ models{2}.name              = 'GoogleNet';
 assert(exist(models{2}.net_file, 'file') ~= 0, [models{2}.name ' Pretrain Model Not Found']);
 
 % cache name
-opts.cache_name             = 'EWSD_Co_Res50_Google';
+opts.cache_name             = 'EWSD_Co_Res50_Google_0712';
 mean_image                  = fullfile(pwd, 'models', 'pre_trained_models', 'ResNet-50L', 'mean_image.mat');
 assert(exist(mean_image, 'file') ~= 0, 'ImageNet Mean Image Not Found');
 extra_para                  = load(fullfile(pwd, 'models', 'pre_trained_models', 'box_param.mat'));
@@ -32,18 +32,18 @@ conf.classes                = extra_para.VOCopts.classes;
 conf.per_class_sample       = 3;
 box_param.bbox_means        = extra_para.bbox_means;
 box_param.bbox_stds         = extra_para.bbox_stds;
-conf.base_select            = [1, 1.5, 2.2, 3.0, 4];
+conf.base_select            = [1, 1, 2, 3, 4];
 conf.debug                  = true;
 conf.rng_seed               = 5;
-max_epoch                   = 10;
-step_epoch                  = 9;
+max_epoch                   = 9;
+step_epoch                  = 8;
 opts.cache_name             = [opts.cache_name, '_per-', num2str(conf.per_class_sample), ...
                                                 '_max_epoch', num2str(max_epoch), '_stepsize-', num2str(step_epoch), ...
                                                 '_seed-', num2str(conf.rng_seed)];
 % train/test data
 fprintf('Loading dataset...');
 dataset                     = [];
-dataset                     = Dataset.voc2007_trainval_ss(dataset, 'train', conf.use_flipped);
+dataset                     = Dataset.voc0712_trainval_ss(dataset, 'train', conf.use_flipped);
 dataset                     = Dataset.voc2007_test_ss(dataset, 'test', false);
 fprintf('Done.\n');
 
@@ -87,15 +87,19 @@ for idx = 1:numel(models)
 end
 
 fprintf('----------------------------------All Test-----------------------------\n');
+imdbs_name          = cell2mat(cellfun(@(x) x.name, dataset.imdb_train,'UniformOutput', false));
+all_test_time       = tic;
 rfcn_model          = cell(numel(models), numel(conf.base_select)+1);
 for iter = 0:numel(conf.base_select)
   for idx = 1:numel(models)
-    rfcn_model{idx, iter+1} = fullfile(pwd, 'output', 'weakly_cachedir' , opts.cache_name, 'voc_2007_trainval', [models{idx}.name, '_Loop_', num2str(iter), '_final.caffemodel']);
+    rfcn_model{idx, iter+1} = fullfile(pwd, 'output', 'weakly_cachedir' , opts.cache_name, imdbs_name, [models{idx}.name, '_Loop_', num2str(iter), '_final.caffemodel']);
 	assert(exist(rfcn_model{idx, iter+1}, 'file') ~= 0, 'not found trained model');
   end
 end
-S_mAPs              = zeros(numel(models), size(rfcn_model,2));
+S_mAPs              = zeros(numel(models)+1, size(rfcn_model,2));
 for index = 1:size(rfcn_model, 2)
+  merge_model_def = cell(numel(models), 1);
+  weigh_model_def = cell(numel(models), 1);
   for idx = 1:numel(models)
     S_mAPs(idx, index) = weakly_co_test(conf, dataset.imdb_test, dataset.roidb_test, ...
                              'net_defs',         {models{idx}.test_net_def_file}, ...
@@ -104,5 +108,16 @@ for index = 1:size(rfcn_model, 2)
                              'cache_name',       opts.cache_name, ...
                              'log_prefix',       [models{idx}.name, '_', num2str(index-1), '_'], ...
                              'ignore_cache',     true);
+    merge_model_def{idx} = models{idx}.test_net_def_file;
+    weigh_model_def{idx} = rfcn_model{idx,index};
   end
+  S_mAPs(end, index)   = weakly_co_test(conf, dataset.imdb_test, dataset.roidb_test, ...
+                             'net_defs',         merge_model_def, ...
+                             'net_models',       weigh_model_def, ...
+                             'test_iteration',   1, ...
+                             'cache_name',       opts.cache_name, ...
+                             'log_prefix',       [cell2mat(cellfun(@(x) x.name, models', 'UniformOutput', false)), '_', num2str(index-1), '_'], ...
+                             'ignore_cache',     true);
 end
+all_test_time = toc(all_test_time);
+fprintf('Training Cost : %.1f s, Test Cost : %.1f s, All Test Cost : %.1f s\n', train_time, test_time, all_test_time);

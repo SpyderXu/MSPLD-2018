@@ -1,13 +1,13 @@
-function [new_image_roidb_train, keep] = weakly_filter_roidb(conf, test_nets, image_roidb_train, smallest)
+function [new_image_roidb_train, keep] = weakly_filter_roidb(conf, test_nets, image_roidb_train, smallest, SAVE_TERM)
   classes = conf.classes;
   num = numel(image_roidb_train); num_class = numel(classes);
-  oks = false(num, 3);            begin_time = tic;
-  save_ratio = 0.30;
+  oks = false(num, 2);            begin_time = tic;
+  %save_ratio = 0.30;
   multibox_thresh = 0;
   %% Filter Multiple Boxes
   for idx = 1:num
     oks(idx, 1) = check_filter_img(image_roidb_train(idx).pseudo_boxes, smallest);
-    if (oks(idx, 1)) 
+    if (oks(idx, 1) && false) 
       ok = check_multibox(conf, test_nets, image_roidb_train(idx), multibox_thresh);
       if (all(ok) == false), oks(idx, 1) = false; end
     end
@@ -32,12 +32,19 @@ function [new_image_roidb_train, keep] = weakly_filter_roidb(conf, test_nets, im
     scores = values{cls};
     idxess = indexs{cls};
     if (isempty(scores)), continue; end
-    [~, sorted_idx] = sort(scores);
-    save_num = ceil(numel(sorted_idx) * save_ratio);
-    save_num = min(save_num, numel(sorted_idx));
+    [scorted_score, sorted_idx] = sort(scores, 'descend');
+    if (numel(SAVE_TERM) == 1)
+        save_num = ceil(numel(scores) * SAVE_TERM);
+    else
+        assert (numel(SAVE_TERM) == num_class);
+        save_num = SAVE_TERM(cls);
+    end
+    save_num = min(save_num, numel(scores));
+    %lower_score = min(scorted_score(save_num), 0.4);
+    lower_score = scorted_score(save_num);
     %idxess = idxess(sorted_idx(end-save_num:end));
     %oks(idxess, 2) = true;
-    idxess = idxess(sorted_idx(1:end-save_num));
+    idxess = idxess(scores <= lower_score);
     oks(idxess, 2) = false;
   end
 
@@ -50,11 +57,16 @@ function [new_image_roidb_train, keep] = weakly_filter_roidb(conf, test_nets, im
   total_count = zeros(numel(classes), 1);
   score_hight = zeros(numel(classes), 1);
   score_lowet = inf(numel(classes), 1);
+  all_t_count = zeros(numel(classes), 1);
+  for i = 1:numel(image_roidb_train)
+    image_label = image_roidb_train(i).image_label;
+    for j = 1:numel(image_label), all_t_count(image_label(j)) = all_t_count(image_label(j)) + 1; end
+  end
   for i = 1:numel(new_image_roidb_train)
     image_label = new_image_roidb_train(i).image_label;
     class = {new_image_roidb_train(i).pseudo_boxes.class}; class = cat(1, class{:});
     score = {new_image_roidb_train(i).pseudo_boxes.score}; score = cat(1, score{:});
-    assert(numel(class) == numel(unique(class)));
+    %assert(numel(class) == numel(unique(class)));
     for j = 1:numel(class)
       score_hight(class(j)) = max(score_hight(class(j)), score(j));
       score_lowet(class(j)) = min(score_lowet(class(j)), score(j));
@@ -67,12 +79,22 @@ function [new_image_roidb_train, keep] = weakly_filter_roidb(conf, test_nets, im
     for j = 1:numel(class), missd_count(class(j)) = missd_count(class(j)) + 1; end
     for j = 1:numel(image_label), total_count(image_label(j)) = total_count(image_label(j)) + 1; end
   end
+
+  miss_mean = get_mean(missd_count, total_count);
+  accu_mean = get_mean(trueo_count, final_count);
+
   for Cls = 1:numel(classes)
-    fprintf('--[%02d] [%12s] : [Select= (OK) %3d/%3d | mis: %3d/%3d] : Accuracy : %.4f :| score : [%.2f, %.2f]\n', Cls, classes{Cls}, ...
-                 trueo_count(Cls), final_count(Cls), missd_count(Cls), total_count(Cls), trueo_count(Cls) / final_count(Cls), score_lowet(Cls), score_hight(Cls));
+    fprintf('--[%02d] [%12s] : [Select= (OK) %3d/%3d | mis: %3d/%3d/%4d] : Accuracy : %.4f :| score : [%.2f, %.2f]\n', Cls, classes{Cls}, ...
+                 trueo_count(Cls), final_count(Cls), missd_count(Cls), total_count(Cls), all_t_count(Cls), accu_mean(Cls), score_lowet(Cls), score_hight(Cls));
   end
-  fprintf('weakly_filter_roidb [total : %4d]->[F1 : %4d]->[F2 : %3d], [accuracy: %.3f (%4d/%4d)] [miss: (%.3f,%.3f) (%4d/%4d) cost %.1f s\n', numel(image_roidb_train), sum(oks(:,1)), sum(oks(:,2)), ...
-                sum(trueo_count)/sum(final_count), sum(trueo_count), sum(final_count), sum(missd_count)/sum(total_count), mean(missd_count./total_count), sum(missd_count), sum(total_count), toc(begin_time));
+  fprintf('weakly_filter_roidb [total : %4d]->[F1 : %4d]->[F2 : %3d], [accuracy: (%.3f,%.3f) (%4d/%4d)] [miss: (%.3f,%.3f) (%4d/%4d/%4d) cost %.1f s\n', numel(image_roidb_train), sum(oks(:,1)), sum(oks(:,2)), ...
+                sum(trueo_count)/sum(final_count), mean(accu_mean), sum(trueo_count), sum(final_count), ...
+                sum(missd_count)/sum(total_count), mean(missd_count./total_count), sum(missd_count), sum(total_count), sum(all_t_count), toc(begin_time));
+end
+
+function miss_mean = get_mean(missd_count, total_count)
+  total_count(total_count==0) = 1;
+  miss_mean = missd_count ./ total_count;
 end
 
 function ok = check_filter_img(pseudo_boxes, smallest)
@@ -80,9 +102,9 @@ function ok = check_filter_img(pseudo_boxes, smallest)
   class = cat(1, class{:});
   boxes = {pseudo_boxes.box};
   boxes = cat(1, boxes{:});
-  if (numel(class) > numel(unique(class)))
+  if (numel(class) > 3)
     ok = false;
-  elseif (numel(class) > 4)
+  elseif (numel(class) > numel(unique(class))+1)
     ok = false;
   else
     keepB = find(boxes(:,3)-boxes(:,1) >= smallest);

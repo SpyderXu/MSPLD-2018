@@ -138,17 +138,29 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
             boxes_per_class(class(j), 2) = boxes_per_class(class(j), 2) + 1;
         end
     end
-    for index = 1:num_class
-        fprintf('%13s : unlabeled boxes : %5d,  labeled boxes : %3d\n', conf.classes{index}, boxes_per_class(index, 1), boxes_per_class(index, 2));
-    end
     clear class j timestamp log_file index filtered_image_roidb_train roidb_train imdb_train;
-    boxes_per_class = boxes_per_class(:, 2);
+    %boxes_per_class = boxes_per_class(:, 2);
 %% assert conf flip attr
     conf.flip = opts.imdb_train{1}.flip;
     for idx = 1:numel(opts.imdb_train)
         assert (opts.imdb_train{idx}.flip == 1);
     end
 
+%{
+    Init_Per_Select = zeros(num_class, 1);
+    for iii = 1:numel(image_roidb_train)
+        class = image_roidb_train(iii).Debug_GT_Cls;
+        if (numel(class) > 3), continue; end
+        if (numel(class) > numel(unique(class))+1), continue; end
+        for j = 1:numel(class)
+            Init_Per_Select(class(j)) = Init_Per_Select(class(j)) + 1;
+        end
+    end
+    for index = 1:num_class
+        fprintf('%13s : unlabeled boxes : %5d,  labeled boxes : %3d, filter : %3d\n', conf.classes{index}, boxes_per_class(index, 1), boxes_per_class(index, 2), Init_Per_Select(index));
+    end
+    Init_Per_Select = ceil(Init_Per_Select / min(Init_Per_Select) * 3);
+%}
 %% training
     model_suffix   = '.caffemodel';
     previous_model = cell(numel(models), 1);
@@ -157,10 +169,14 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
                                                 opts.box_param, conf, cache_dir, [models{idx}.name, '_Loop_0'], model_suffix, 'final', opts.step_epoch, opts.max_epoch);
     end
 
-    LIMIT = 5;
+    LIMIT = 2;
     boost = false;
 
     pre_keep = false(numel(image_roidb_train), 1);
+
+    Init_Per_Select = [40,  5,  5, 5,  5, 4, 30, 13, 15,  4,...
+                        5,  5,  5, 5, 10, 5,  3, 10, 40, 10];
+%% Start Training
     for index = 1:numel(conf.base_select)
         base_select = conf.base_select(index);
 
@@ -172,10 +188,12 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
             self_test_net = caffe.Net(models{idx}.test_net_def_file, 'test');
             self_test_net.copy_from(previous_model{idx});
             
-            [A_image_roidb_train, A_keep_id] =  weakly_generate_pseudo(conf, {oppo_test_net,self_test_net}, image_roidb_train, opts.box_param.bbox_means, opts.box_param.bbox_stds, boost);
+            [A_image_roidb_train, A_keep_id] = weakly_generate_pseudo(conf, {oppo_test_net,self_test_net}, image_roidb_train, opts.box_param.bbox_means, opts.box_param.bbox_stds, boost);
 
+            PER_Select = ceil(Init_Per_Select * base_select);
             %% Filter Unreliable Image with pseudo-boxes
-            [B_image_roidb_train, B_keep_id] = weakly_filter_roidb(conf, {oppo_test_net,self_test_net}, A_image_roidb_train, 15);
+            %[B_image_roidb_train, B_keep_id] = weakly_filter_roidb(conf, {oppo_test_net,self_test_net}, A_image_roidb_train, 15, 0.3);
+            [B_image_roidb_train, B_keep_id] = weakly_filter_roidb(conf, {oppo_test_net,self_test_net}, A_image_roidb_train, 15, PER_Select*LIMIT);
             keep_id = A_keep_id(B_keep_id);
 
             caffe.reset_all();
@@ -184,10 +202,9 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
             self_train_solver = caffe.Solver(models{idx}.solver_def_file);
             self_train_solver.net.copy_from(previous_model{idx});
 
-            %PER_Select            = boxes_per_class / min(boxes_per_class) * base_select;
-            PER_Select = [20, 10,  4, 5,  2, 4, 30, 13, 15,  4,...
-                           4, 10, 11, 7, 30, 7,  7, 10, 20, 10];
-            PER_Select = ceil(PER_Select / min(PER_Select) * base_select);
+            %PER_Select = [20, 10,  4, 5,  2, 4, 30, 13, 15,  4,...
+            %               4, 10, 11, 7, 30, 7,  7, 10, 20, 10];
+            %PER_Select = ceil(Init_Per_Select*base_select);%ceil(Init_Per_Select / min(Init_Per_Select) * base_select);
 
             [C_image_roidb_train, cur_keep] = weakly_generate_co_v(conf, oppo_train_solver, self_train_solver, B_image_roidb_train, keep_id, pre_keep, PER_Select, LIMIT);
 
@@ -202,11 +219,11 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
         end
 
         %%% Check Whether Stop
-        if (numel(B_image_roidb_train) * 0.9 <= sum(PER_Select)) 
-            fprintf('Stop iteration due to reach max numbers : %d\n', ceil(numel(B_image_roidb_train) * 0.9));
-            break;
-        end
-
+        %Uplimit = 0.8;
+        %if (numel(B_image_roidb_train) * Uplimit <= sum(PER_Select)) 
+        %    fprintf('Stop iteration due to reach max numbers : %d\n', ceil(numel(B_image_roidb_train) * Uplimit));
+        %    break;
+        %end
     end
 
     save_model_path    = cell(numel(models), 1);
@@ -229,3 +246,13 @@ function inloop_debug(conf, image_roidb_train, debug_dir)
   end
 end
 
+function select = inloop_count(conf, image_roidb_train)
+  numcls = numel(conf.classes);
+  select = zeros(numcls, 1);
+  for index = 1:numel(image_roidb_train)
+    class = image_roidb_train(index).image_label;
+    for j = 1:numel(class)
+      select(class(j)) = select(class(j)) + 1;
+    end
+  end
+end

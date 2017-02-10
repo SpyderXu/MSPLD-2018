@@ -158,6 +158,9 @@ function save_model_path = weakly_train_final(conf, imdb_train, roidb_train, var
     previous_model = weakly_supervised(warmup_roidb_train, opts.solver_def_file, opts.net_file, opts.val_interval, opts.snapshot_interval, ...
 		opts.box_param, conf, cache_dir, 'Loop_0', model_suffix, 'final', opts.step_epoch, opts.max_epoch);
 
+    Init_Per_Select = [40, 10, 4, 5, 2, 4, 30, 13, 15, 4,...
+                        4, 10, 11, 7, 30, 7, 7, 10, 20, 10];
+
     for index = 1:numel(conf.base_select)
         base_select = conf.base_select(index);
         begin__time  = tic;
@@ -169,16 +172,15 @@ function save_model_path = weakly_train_final(conf, imdb_train, roidb_train, var
         caffe_test_net.copy_from(previous_model);
         [A_image_roidb_train, ~] = weakly_generate_pseudo(conf, {caffe_test_net}, image_roidb_train, opts.box_param.bbox_means, opts.box_param.bbox_stds, false);
 
+        PER_Select = ceil(Init_Per_Select / min(Init_Per_Select) * base_select);
         %% Filter Unreliable Image with pseudo-boxes
-        [B_image_roidb_train, ~] = weakly_filter_roidb(conf, {caffe_test_net}, A_image_roidb_train, 15);
+        %[B_image_roidb_train, ~] = weakly_filter_roidb(conf, {caffe_test_net}, A_image_roidb_train, 15, 0.3);
+        [B_image_roidb_train, ~] = weakly_filter_roidb(conf, {caffe_test_net}, A_image_roidb_train, 15, PER_Select*2);
 
         if (conf.debug), inloop_debug(conf, B_image_roidb_train, ['Loop_', num2str(index), '_B']); end
 
         %% Self-Paced Sample
         %PER_Select               = boxes_per_class / min(boxes_per_class) * base_select;
-        PER_Select = [20, 10, 4, 5, 2, 4, 30, 13, 15, 4,...
-                      4, 10, 11, 7, 30, 7, 7, 10, 20, 10];
-        PER_Select = ceil(PER_Select / min(PER_Select) * base_select);
         caffe.reset_all();
         train_solver = caffe.Solver(opts.solver_def_file);
         train_solver.net.copy_from(previous_model);
@@ -193,10 +195,10 @@ function save_model_path = weakly_train_final(conf, imdb_train, roidb_train, var
                                                   opts.box_param, conf, cache_dir, ['Loop_', num2str(index)], model_suffix, 'final', opts.step_epoch, opts.max_epoch);
 
         %%% Check Whether Stop
-        if (numel(B_image_roidb_train) * 0.9 <= sum(PER_Select))
-            fprintf('Stop iteration due to reach max numbers : %d\n', ceil(numel(B_image_roidb_train) * 0.9));
-            break;
-        end
+        %if (numel(B_image_roidb_train) * 0.9 <= sum(PER_Select))
+        %    fprintf('Stop iteration due to reach max numbers : %d\n', ceil(numel(B_image_roidb_train) * 0.9));
+        %    break;
+        %end
 
     end
     
