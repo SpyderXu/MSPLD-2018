@@ -42,19 +42,6 @@ function [sampled_train, saved_train] = weakly_sample_train(image_roidb_train, n
 	        selected_ids(end+1) = index;
             if (flip), selected_ids(end+1) = index + total; end
         end
-        %{
-        for jj = 1:number
-            label  = image_roidb_train(index).image_label(end);
-            if (num_select_per_class(label) < num_per_class)
-	            num_select_per_class(label) = num_select_per_class(label) + 1;
-	            selected_ids(end+1) = index;
-                if (flip)
-                    selected_ids(end+1) = index + total;
-                end
-                break;
-            end
-        end
-        %}
     end
     sss_num = numel(selected_ids); if (flip), sss_num = sss_num / 2; end
     fprintf('Sample %d images (not include fliped pics)\n', sss_num);
@@ -77,7 +64,7 @@ function [sampled_train, saved_train] = weakly_sample_train(image_roidb_train, n
             num_total_per_class(image_label(j)) = num_total_per_class(image_label(j)) + 1;
         end
     end
-    for i = 1:numel(classes)
-        fprintf('Class [%02d] sample : %02d / total : %5d = Limited : %2d\n', i, num_select_per_class(i), num_total_per_class(i), num_per_class(i));
-    end
+    %for i = 1:numel(classes)
+    %    fprintf('Class [%02d] sample : %02d / total : %5d = Limited : %2d\n', i, num_select_per_class(i), num_total_per_class(i), num_per_class(i));
+    %end
 end

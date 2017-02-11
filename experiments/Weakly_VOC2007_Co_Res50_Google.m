@@ -34,12 +34,13 @@ box_param.bbox_means        = extra_para.bbox_means;
 box_param.bbox_stds         = extra_para.bbox_stds;
 conf.base_select            = [1, 2, 3, 4];
 conf.debug                  = true;
+conf.pseudo_way             = 'both'; %% three iterms : both, oppo, self
 conf.rng_seed               = 5;
 max_epoch                   = 9;
 step_epoch                  = 8;
 opts.cache_name             = [opts.cache_name, '_per-', num2str(conf.per_class_sample), ...
                                                 '_max_epoch', num2str(max_epoch), '_stepsize-', num2str(step_epoch), ...
-                                                '_seed-', num2str(conf.rng_seed)];
+                                                '_seed-', num2str(conf.rng_seed), '_pseudo-', conf.pseudo_way];
 % train/test data
 fprintf('Loading dataset...');
 dataset                     = [];

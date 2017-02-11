@@ -30,13 +30,10 @@ conf.per_class_sample       = [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, ...
 box_param.bbox_means        = model.extra_para.bbox_means;
 box_param.bbox_stds         = model.extra_para.bbox_stds;
 conf.base_select            = [1, 2, 3, 4];
-conf.allow_mul_ins          = true;
 conf.debug                  = true;
 conf.rng_seed               = 5;
 max_epoch                   = 10;
 step_epoch                  = 9;
-if conf.allow_mul_ins,  multiselect_string = '_multi'; 
-else,                   multiselect_string = '_single'; end
 opts.cache_name             = [opts.cache_name, '_per-', num2str(mean(conf.per_class_sample)), multiselect_string, ...
                                                 '_max-epoch-', num2str(max_epoch), '_stepsize-', num2str(step_epoch), ...
                                                 '_seed-', num2str(conf.rng_seed)];

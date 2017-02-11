@@ -27,6 +27,7 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
     assert(isfield(opts.box_param, 'bbox_means'));
     assert(isfield(opts.box_param, 'bbox_stds'));
     assert(isfield(conf, 'debug'));
+    assert(isfield(conf, 'pseudo_way'));
     assert(isfield(conf, 'base_select'));
     assert(numel(models) == 2);
     for idx = 1:numel(models)
@@ -146,21 +147,6 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
         assert (opts.imdb_train{idx}.flip == 1);
     end
 
-%{
-    Init_Per_Select = zeros(num_class, 1);
-    for iii = 1:numel(image_roidb_train)
-        class = image_roidb_train(iii).Debug_GT_Cls;
-        if (numel(class) > 3), continue; end
-        if (numel(class) > numel(unique(class))+1), continue; end
-        for j = 1:numel(class)
-            Init_Per_Select(class(j)) = Init_Per_Select(class(j)) + 1;
-        end
-    end
-    for index = 1:num_class
-        fprintf('%13s : unlabeled boxes : %5d,  labeled boxes : %3d, filter : %3d\n', conf.classes{index}, boxes_per_class(index, 1), boxes_per_class(index, 2), Init_Per_Select(index));
-    end
-    Init_Per_Select = ceil(Init_Per_Select / min(Init_Per_Select) * 3);
-%}
 %% training
     model_suffix   = '.caffemodel';
     previous_model = cell(numel(models), 1);
@@ -174,8 +160,8 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
 
     pre_keep = false(numel(image_roidb_train), 1);
 
-    Init_Per_Select = [40,  5,  5, 5,  5, 4, 30, 13, 15,  4,...
-                        5,  5,  5, 5, 10, 5,  3, 10, 40, 10];
+    Init_Per_Select = [40,  5, 10, 5,  5, 10, 40, 13, 15,  4,...
+                        5,  5,  3, 8, 10,  5,  3, 10, 35, 15];
 %% Start Training
     for index = 1:numel(conf.base_select)
         base_select = conf.base_select(index);
@@ -183,17 +169,25 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
         for idx = 1:numel(models)
             fprintf('\n-------Start Loop %2d == %8s ==with base_select : %4.2f-------\n', index, models{idx}.name, base_select);
             caffe.reset_all();
-            oppo_test_net = caffe.Net(models{3-idx}.test_net_def_file, 'test');
-            oppo_test_net.copy_from(previous_model{3-idx});
-            self_test_net = caffe.Net(models{idx}.test_net_def_file, 'test');
-            self_test_net.copy_from(previous_model{idx});
+            use_for_pseudo = [];
+            if (strcmp(conf.pseudo_way, 'both')==1 || strcmp(conf.pseudo_way, 'oppo')==1)
+                oppo_test_net = caffe.Net(models{3-idx}.test_net_def_file, 'test');
+                oppo_test_net.copy_from(previous_model{3-idx});
+                use_for_pseudo{end+1} = oppo_test_net;
+            end
+            if (strcmp(conf.pseudo_way, 'both')==1 || strcmp(conf.pseudo_way, 'self')==1)
+                self_test_net = caffe.Net(models{idx}.test_net_def_file, 'test');
+                self_test_net.copy_from(previous_model{idx});
+                use_for_pseudo{end+1} = self_test_net;
+            end
+            assert (numel(use_for_pseudo) > 0);
             
-            [A_image_roidb_train, A_keep_id] = weakly_generate_pseudo(conf, {oppo_test_net,self_test_net}, image_roidb_train, opts.box_param.bbox_means, opts.box_param.bbox_stds, boost);
+            [A_image_roidb_train, A_keep_id] = weakly_generate_pseudo(conf, use_for_pseudo, image_roidb_train, opts.box_param.bbox_means, opts.box_param.bbox_stds, boost);
 
             PER_Select = ceil(Init_Per_Select * base_select);
             %% Filter Unreliable Image with pseudo-boxes
             %[B_image_roidb_train, B_keep_id] = weakly_filter_roidb(conf, {oppo_test_net,self_test_net}, A_image_roidb_train, 15, 0.3);
-            [B_image_roidb_train, B_keep_id] = weakly_filter_roidb(conf, {oppo_test_net,self_test_net}, A_image_roidb_train, 15, PER_Select*LIMIT);
+            [B_image_roidb_train, B_keep_id] = weakly_filter_roidb(conf, use_for_pseudo, A_image_roidb_train, 15, PER_Select*LIMIT);
             keep_id = A_keep_id(B_keep_id);
 
             caffe.reset_all();
@@ -201,10 +195,6 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
             oppo_train_solver.net.copy_from(previous_model{3-idx});
             self_train_solver = caffe.Solver(models{idx}.solver_def_file);
             self_train_solver.net.copy_from(previous_model{idx});
-
-            %PER_Select = [20, 10,  4, 5,  2, 4, 30, 13, 15,  4,...
-            %               4, 10, 11, 7, 30, 7,  7, 10, 20, 10];
-            %PER_Select = ceil(Init_Per_Select*base_select);%ceil(Init_Per_Select / min(Init_Per_Select) * base_select);
 
             [C_image_roidb_train, cur_keep] = weakly_generate_co_v(conf, oppo_train_solver, self_train_solver, B_image_roidb_train, keep_id, pre_keep, PER_Select, LIMIT);
 
