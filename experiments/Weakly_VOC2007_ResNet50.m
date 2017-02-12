@@ -1,5 +1,5 @@
 figure('visible', 'off');
-clear;close all;clc;
+clear; close all; clc;
 clear mex;
 clear is_valid_handle; % to clear init_key
 %run(fullfile(fileparts(fileparts(mfilename('fullpath'))), 'startup'));
@@ -11,9 +11,8 @@ active_caffe_mex(opts.gpu_id, opts.caffe_version);
 % model
 model.solver_def_file       = fullfile(pwd, 'models', 'rfcn_prototxts', 'ResNet-50L_OHEM_res3a', ['solver_lr1_3.prototxt']);
 model.test_net_def_file     = fullfile(pwd, 'models', 'rfcn_prototxts', 'ResNet-50L_OHEM_res3a', 'test.prototxt');
-
 model.net_file              = fullfile(pwd, 'models', 'pre_trained_models', 'ResNet-50L', 'ResNet-50-model.caffemodel');
-model.mean_image            = fullfile(pwd, 'models', 'pre_trained_models', 'ResNet-50L', 'mean_image');
+model.mean_image            = fullfile(pwd, 'models', 'pre_trained_models', 'mean_image');
 model.extra_para            = fullfile(pwd, 'models', 'pre_trained_models', 'box_param.mat');
 model.extra_para            = load(model.extra_para);
 
@@ -26,14 +25,12 @@ conf.per_class_sample       = 3;
 box_param.bbox_means        = model.extra_para.bbox_means;
 box_param.bbox_stds         = model.extra_para.bbox_stds;
 conf.base_select            = [1, 2, 3, 4];
-conf.allow_mul_ins          = true;
 conf.debug                  = true;
 conf.rng_seed               = 5;
 max_epoch                   = 10;
 step_epoch                  = 9;
-if conf.allow_mul_ins,  multiselect_string = '_multi';
-else,                   multiselect_string = '_single'; end
-opts.cache_name             = [opts.cache_name, '_per-', num2str(conf.per_class_sample), multiselect_string, ...
+conf.nms_config             = false;
+opts.cache_name             = [opts.cache_name, '_per-', num2str(conf.per_class_sample), '_nms-', num2str(conf.nms_config), ...
                                                 '_max_epoch', num2str(max_epoch), '_stepsize-', num2str(step_epoch), ...
                                                 '_seed-', num2str(conf.rng_seed)];
 % train/test data
@@ -60,14 +57,20 @@ save(config_save_path, 'conf', 'opts', 'model', '-v7.3');
 
 fprintf('-------------------- TESTING --------------------\n');
 test_time                   = tic;
-mAP                         = weakly_co_test(conf, dataset.imdb_test, dataset.roidb_test, ...
+mAP                         = weakly_co_test_mAP(conf, dataset.imdb_test, dataset.roidb_test, ...
                                 'net_defs',         {model.test_net_def_file}, ...
                                 'net_models',       {opts.rfcn_model}, ...
                                 'cache_name',       opts.cache_name,...
                                 'test_iteration',   2,...
                                 'ignore_cache',     true);
 test_time                   = toc(test_time);
-fprintf('Training Cost : %.1f s, Test Cost : %.1f s, mAP : %.2f\n', train_time, test_time, mAP);
+loc_dataset                 = Dataset.voc2007_trainval_ss([], 'train', false);
+Corloc                      = weakly_co_test_Cor(conf, loc_dataset.imdb_train{1}, loc_dataset.roidb_train{1}, ...
+                                'net_defs',         {model.test_net_def_file}, ...
+                                'net_models',       {opts.rfcn_model}, ...
+                                'cache_name',       opts.cache_name,...
+                                'ignore_cache',     true);
+fprintf('Training Cost : %.1f s, Test Cost : %.1f s, mAP : %.2f, Corloc : %.2f\n', train_time, test_time, mAP, Corloc);
 
 
 fprintf('----------------------------------All Test-----------------------------\n');
@@ -81,7 +84,7 @@ for iter = 0:numel(conf.base_select)
 end
 mAPs                = [];
 for index = 1:numel(rfcn_model)
-mAPs(index)         = weakly_co_test(conf, dataset.imdb_test, dataset.roidb_test, ...
+mAPs(index)         = weakly_co_test_mAP(conf, dataset.imdb_test, dataset.roidb_test, ...
                              'net_defs',         {model.test_net_def_file}, ...
                              'net_models',       rfcn_model(index), ...
                              'cache_name',       opts.cache_name,...

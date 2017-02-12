@@ -1,4 +1,4 @@
-function [new_image_roidb_train, ret_keep] = weakly_generate_co_v(conf, oppo_train_solver, self_train_solver, image_roidb_train, keep_id, pre_keep, PER_Select, LIMIT)
+function [new_image_roidb_train, ret_keep] = weakly_generate_co_v(conf, oppo_train_solver, self_train_solver, image_roidb_train, keep_id, pre_keep, PER_Select)
 
   oppo_train_solver.net.set_phase('test'); 
   self_train_solver.net.set_phase('test'); 

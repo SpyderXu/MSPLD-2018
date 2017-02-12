@@ -1,4 +1,4 @@
-function mAP = weakly_co_test(conf, imdb, roidb, varargin)
+function mean_loc = weakly_co_test_Cor(conf, imdb, roidb, varargin)
 % --------------------------------------------------------
 % R-FCN implementation
 % Modified from MATLAB Faster R-CNN (https://github.com/shaoqingren/faster_rcnn)
@@ -27,7 +27,7 @@ function mAP = weakly_co_test(conf, imdb, roidb, varargin)
     assert (numel(opts.net_defs) == numel(opts.net_models));
     assert(isfield(conf, 'classes'));
 %%  set cache dir
-    cache_dir = fullfile(pwd, 'output', 'weakly_cachedir', opts.cache_name, imdb.name);
+    cache_dir = fullfile(pwd, 'output', 'weakly_cachedir', opts.cache_name, [imdb.name, '_Cor']);
     mkdir_if_missing(cache_dir);
 
 %%  init log
@@ -40,15 +40,21 @@ function mAP = weakly_co_test(conf, imdb, roidb, varargin)
     num_classes = imdb.num_classes;
     caffe.reset_all(); 
     
+    gt_boxes = cell(num_images, 1);
+    for i = 1:num_images
+      gt = roidb.rois(i).gt;
+      Struct = struct('class', roidb.rois(i).class(gt), ...
+                      'boxes', roidb.rois(i).boxes(gt,:));
+      gt_boxes{i} = Struct;
+    end
+    
     try
-      aboxes = cell(num_classes, 1);
+      aboxes = cell(num_images, 1);
       if opts.ignore_cache
           throw('');
       end
-      for i = 1:num_classes
-        load(fullfile(cache_dir, [imdb.classes{i} '_boxes_' imdb.name opts.suffix]));
-        aboxes{i} = boxes;
-      end
+      aboxes = load(fullfile(cache_dir, ['all_boxes_' imdb.name opts.suffix]));
+      aboxes = aboxes.aboxes;
     catch    
 %%      testing 
         % init caffe net
@@ -88,14 +94,9 @@ function mAP = weakly_co_test(conf, imdb, roidb, varargin)
         % top_scores will hold one minheap of scores per class (used to enforce the max_per_set constraint)
         top_scores = cell(num_classes, 1);
         % all detections are collected into:
-        %    all_boxes[cls][image] = N x 5 array of detections in
-        %    (x1, y1, x2, y2, score)
-        aboxes = cell(num_classes, 1);
-        box_inds = cell(num_classes, 1);
-        for i = 1:num_classes
-            aboxes{i} = cell(length(imdb.image_ids), 1);
-            box_inds{i} = cell(length(imdb.image_ids), 1);
-        end
+        %    all_boxes[image] = 20 x 4 array of detections in
+        %    (x1, y1, x2, y2) for each class
+        aboxes = cell(num_images, 1);
 
         count = 0;
         t_start = tic;
@@ -136,122 +137,76 @@ function mAP = weakly_co_test(conf, imdb, roidb, varargin)
             end
             boxes  = boxes  ./ numel(caffe_net);
             scores = scores ./ numel(caffe_net);
-
-            for j = 1:num_classes
-                inds = find(scores(:, j) > thresh(j));
-                if ~isempty(inds)
-                    [~, ord] = sort(scores(inds, j), 'descend');
-                    ord = ord(1:min(length(ord), max_per_image));
-                    inds = inds(ord);
-                    cls_boxes = boxes(inds, (1+(j-1)*4):((j)*4));
-                    cls_scores = scores(inds, j);
-                    aboxes{j}{i} = [aboxes{j}{i}; cat(2, single(cls_boxes), single(cls_scores))];
-                    box_inds{j}{i} = [box_inds{j}{i}; inds];
-                else
-                    aboxes{j}{i} = [aboxes{j}{i}; zeros(0, 5, 'single')];
-                    box_inds{j}{i} = box_inds{j}{i};
-                end
+    
+            cor_boxes = zeros(0, 4);
+            for cls = 1:num_classes
+                tscore = scores(:, cls);
+                tboxes = boxes(:, (cls-1)*4+1:cls*4);
+                [~, idx] = max(tscore);
+                cor_boxes = [cor_boxes; tboxes(idx,:)];
             end
+            all_boxes{i} = cor_boxes;
             
             if (rem(count, opts.dis_itertion) == 1)
               fprintf(' time %.3fs\n', toc(th)); 
             end
-            if mod(count, 1000) == 0
-                for j = 1:num_classes
-                [aboxes{j}, box_inds{j}, thresh(j)] = ...
-                    keep_top_k(aboxes{j}, box_inds{j}, i, max_per_set, thresh(j));
-                end
-                %disp(thresh);
-                diary; diary;
-            end    
+            if (mod(count, 1000) == 0), diary; diary; end
         end
 
-        for j = 1:num_classes
-            [aboxes{j}, box_inds{j}, thresh(j)] = ...
-                keep_top_k(aboxes{j}, box_inds{j}, i, max_per_set, thresh(j));
-        end
-        disp(thresh');
-
-        for i = 1:num_classes
-            top_scores{i} = sort(top_scores{i}, 'descend');  
-            if (length(top_scores{i}) > max_per_set)
-                thresh(i) = top_scores{i}(max_per_set);
-            end
-
-            % go back through and prune out detections below the found threshold
-            for j = 1:length(imdb.image_ids)
-                if ~isempty(aboxes{i}{j})
-                    I = find(aboxes{i}{j}(:,end) < thresh(i));
-                    aboxes{i}{j}(I,:) = [];
-                    box_inds{i}{j}(I,:) = [];
-                end
-            end
-
-            save_file = fullfile(cache_dir, [imdb.classes{i} '_boxes_' imdb.name opts.suffix]);
-            boxes = aboxes{i};
-            inds = box_inds{i};
-            save(save_file, 'boxes', 'inds');
-            clear boxes inds;
-        end
+        save_file = fullfile(cache_dir, ['all_boxes_' imdb.name opts.suffix]);
+        save(save_file, 'aboxes');
+        clear save_file pre_boxes add_boxes mx_id boxes scores;
         fprintf('test all images in %f seconds.\n', toc(t_start));
         
         caffe.reset_all(); 
         rng(prev_rng);
     end
 
-    % ------------------------------------------------------------------------
-    % Peform AP evaluation
-    % ------------------------------------------------------------------------
-
-	tic;
-    if isequal(imdb.eval_func, @imdb_eval_voc)
-        %new_parpool();
-        parfor model_ind = 1:num_classes
-          cls = imdb.classes{model_ind};
-          res(model_ind) = imdb.eval_func(cls, aboxes{model_ind}, imdb, opts.cache_name, opts.suffix);
-        end
-    else
-    % ilsvrc
-        res = imdb.eval_func(aboxes, imdb, opts.cache_name, opts.suffix);
+    for i = 1:numel(aboxes)
+      assert (size(aboxes, 1) == num_classes);
+      assert (size(aboxes, 2) == 4);
     end
-
-    if ~isempty(res)
-        fprintf('\n~~~~~~~~~~~~~~~~~~~~\n');
-        fprintf('Results:\n');
-        aps = [res(:).ap]' * 100;
-        %disp(aps);
-        assert( numel(conf.classes) == numel(aps));
-        for idx = 1:numel(aps)
-            fprintf('%12s : %5.2f\n', conf.classes{idx}, aps(idx));
-        end
-        fprintf('\nmean mAP : %.4f\n', mean(aps));
-        %disp(mean(aps));
-        fprintf('~~~~~~~~~~~~~~~~~~~~ evaluate cost %.2f s\n', toc);
-        mAP = mean(aps);
-    else
-        mAP = nan;
+    % ------------------------------------------------------------------------
+    % Peform Corloc evaluation
+    % ------------------------------------------------------------------------
+    tic;
+    [res] = corloc(conf, gt_boxes, all_boxes, 0.5);
+    fprintf('\n~~~~~~~~~~~~~~~~~~~~\n');
+    fprintf('Results:\n');
+    res = res * 100;
+    assert( numel(conf.classes) == numel(res));
+    for idx = 1:numel(res)
+      fprintf('%12s : corloc : %5.2f\n', conf.classes{idx}, res(idx));
     end
-    
+    fprintf('\nmean corloc : %.4f\n', mean(res));
+    fprintf('~~~~~~~~~~~~~~~~~~~~ evaluate cost %.2f s\n', toc);
+    mean_loc = mean(res);
+
     diary off;
 end
 
 
 % ------------------------------------------------------------------------
-function [boxes, box_inds, thresh] = keep_top_k(boxes, box_inds, end_at, top_k, thresh)
+function [res] = corloc(conf, gt_boxes, all_boxes, corlocThreshold)
 % ------------------------------------------------------------------------
-    % Keep top K
-    X = cat(1, boxes{1:end_at});
-    if isempty(X)
-        return;
-    end
-    scores = sort(X(:,end), 'descend');
-    thresh = scores(min(length(scores), top_k));
-    for image_index = 1:end_at
-        if ~isempty(boxes{image_index})
-            bbox = boxes{image_index};
-            keep = find(bbox(:,end) >= thresh);
-            boxes{image_index} = bbox(keep,:);
-            box_inds{image_index} = box_inds{image_index}(keep);
+    num_class = numel(conf.classes);
+    num_image = numel(gt_boxes);     assert (num_image == numel(all_boxes));
+    res = zeros(num_class, 1);
+    for cls = 1:num_class
+        overlaps = [];
+        for idx = 1:num_image
+           gt = gt_boxes{idx};
+           gtboxes = gt.boxes(gt.class == cls, :);
+           if (isempty(gtboxes)), continue; end
+           localizedBox = all_boxes{idx}(cls, :);
+           overlap = iou(gtboxes, localizedBox);
+           overlap = max(overlap);
+           if (overlap >= corlocThreshold)
+             overlaps(end+1) = 1;
+           else
+             overlaps(end+1) = 1;
+           end
         end
+        res(cls) = mean(overlaps);
     end
 end

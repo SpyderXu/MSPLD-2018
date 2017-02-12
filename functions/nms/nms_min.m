@@ -1,4 +1,4 @@
-function pick = nms(boxes, overlap)
+function pick = nms_min(boxes, overlap)
 % top = nms(boxes, overlap)
 % Non-maximum suppression. (FAST VERSION)
 % Greedily select high-scoring detections and skip detections
@@ -23,7 +23,7 @@ if isempty(boxes)
 end
 
 if size(boxes, 1) < 1000000
-    pick = nms_mex(double(boxes), double(overlap));
+    pick = nms_min_mex(double(boxes), double(overlap));
     return;
 end
 
@@ -53,7 +53,7 @@ while ~isempty(I)
   h = max(0.0, yy2-yy1+1);
   
   inter = w.*h;
-  o = inter ./ (area(i) + area(I(1:last-1)) - inter);
+  o = min( inter ./ area(i), inter ./ area(I(1:last-1)));
   
   I = I(find(o<=overlap));
 end

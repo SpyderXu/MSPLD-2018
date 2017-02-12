@@ -118,7 +118,11 @@ function structs = generate_pseudo(conf, test_nets, image_roidb_train, num_class
   for Cls = 1:num_classes
     aboxes  = [image_roidb_train{1}.boxes, final_score(:,Cls)];
     %aboxes  = [final_boxes(:,(Cls-1)*4+1:Cls*4), final_score(:,Cls)];
-    keep           = nms(aboxes, 0.3);
+    if (conf.nms_config == false)
+        keep           = nms(aboxes, 0.3);
+    else
+        keep           = nms_min(aboxes, 0.3);
+    end
     keep           = keep(ID_bbx(keep)==Cls);
     keep           = keep(final_score(keep, Cls) >= thresh_hold);
     for j = 1:numel(keep)

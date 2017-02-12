@@ -28,6 +28,7 @@ function save_model_path = weakly_train_final(conf, imdb_train, roidb_train, var
     assert(isfield(conf, 'per_class_sample'));
     assert(isfield(conf, 'debug'));
     assert(isfield(conf, 'base_select'));
+    assert(isfield(conf, 'nms_config'))
     assert(isfield(opts.box_param, 'bbox_means'));
     assert(isfield(opts.box_param, 'bbox_stds'));
     
@@ -95,9 +96,7 @@ function save_model_path = weakly_train_final(conf, imdb_train, roidb_train, var
                         'Debug_GT_Cls', image_roidb_train(index).class(gt, :), ...
                         'Debug_GT_Box', image_roidb_train(index).boxes(gt, :), ...
                         'image_label',image_roidb_train(index).image_label);
-        if (sum(gt) == numel(Struct.image_label))
-            filtered_image_roidb_train{end+1} = Struct;
-        end
+        filtered_image_roidb_train{end+1} = Struct;
     end
     fprintf('Images after filtered : %d, total : %d\n', numel(filtered_image_roidb_train), numel(image_roidb_train));
     image_roidb_train = cat(1, filtered_image_roidb_train{:});
@@ -184,7 +183,7 @@ function save_model_path = weakly_train_final(conf, imdb_train, roidb_train, var
         caffe.reset_all();
         train_solver = caffe.Solver(opts.solver_def_file);
         train_solver.net.copy_from(previous_model);
-        C_image_roidb_train      = weakly_generate_v(conf, train_solver, B_image_roidb_train, PER_Select, 6);
+        C_image_roidb_train      = weakly_generate_v(conf, train_solver, B_image_roidb_train, PER_Select);
 
         if (conf.debug), inloop_debug(conf, C_image_roidb_train, ['Loop_', num2str(index), '_C']); end
 

@@ -1,4 +1,4 @@
-function [new_image_roidb_train] = weakly_generate_v(conf, train_solver, image_roidb_train, PER_Select, LIMIT)
+function [new_image_roidb_train] = weakly_generate_v(conf, train_solver, image_roidb_train, PER_Select)
 
   train_solver.net.set_phase('test'); 
   number = numel(image_roidb_train);

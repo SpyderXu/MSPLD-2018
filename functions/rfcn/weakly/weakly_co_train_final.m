@@ -29,6 +29,7 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
     assert(isfield(conf, 'debug'));
     assert(isfield(conf, 'pseudo_way'));
     assert(isfield(conf, 'base_select'));
+    assert(isfield(conf, 'nms_config'));
     assert(numel(models) == 2);
     for idx = 1:numel(models)
         assert(isfield(models{idx}, 'solver_def_file'));
@@ -100,9 +101,7 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
                         'Debug_GT_Cls', image_roidb_train(index).class(gt, :), ...
                         'Debug_GT_Box', image_roidb_train(index).boxes(gt, :), ...
                         'image_label', image_roidb_train(index).image_label);
-        if (sum(gt) == numel(Struct.image_label))
-            filtered_image_roidb_train{end+1} = Struct;
-        end
+        filtered_image_roidb_train{end+1} = Struct;
     end
     fprintf('Images after filtered : %d, total : %d\n', numel(filtered_image_roidb_train), numel(image_roidb_train));
     image_roidb_train = cat(1, filtered_image_roidb_train{:});
@@ -160,8 +159,8 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
 
     pre_keep = false(numel(image_roidb_train), 1);
 
-    Init_Per_Select = [40,  5, 10, 5,  5, 10, 40, 13, 15,  4,...
-                        5,  5,  3, 8, 10,  5,  3, 10, 35, 15];
+    Init_Per_Select = [40, 10, 10, 10, 15, 10, 40, 13, 15, 10,...
+                       15, 15,  3,  8, 10, 15, 10, 10, 35, 25];
 %% Start Training
     for index = 1:numel(conf.base_select)
         base_select = conf.base_select(index);
@@ -196,7 +195,7 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
             self_train_solver = caffe.Solver(models{idx}.solver_def_file);
             self_train_solver.net.copy_from(previous_model{idx});
 
-            [C_image_roidb_train, cur_keep] = weakly_generate_co_v(conf, oppo_train_solver, self_train_solver, B_image_roidb_train, keep_id, pre_keep, PER_Select, LIMIT);
+            [C_image_roidb_train, cur_keep] = weakly_generate_co_v(conf, oppo_train_solver, self_train_solver, B_image_roidb_train, keep_id, pre_keep, PER_Select);
 
             pre_keep = cur_keep;
             %% Draw
