@@ -204,7 +204,7 @@ function [res] = corloc(conf, gt_boxes, all_boxes, corlocThreshold)
            if (overlap >= corlocThreshold)
              overlaps(end+1) = 1;
            else
-             overlaps(end+1) = 1;
+             overlaps(end+1) = 0;
            end
         end
         res(cls) = mean(overlaps);
