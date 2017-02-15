@@ -1,4 +1,4 @@
-function model_path = weakly_supervised(roidb_train, solver_file, model_file, val_interval, snapshot_interval, box_param, conf, cache_dir, prefix, suffix, final_name, step_epoch, max_epoch)
+function model_path = weakly_supervised(roidb_train, solver_file, model_file, val_interval, box_param, conf, cache_dir, prefix, suffix, final_name, step_epoch, max_epoch)
   model_path = fullfile(cache_dir, [prefix, '_', final_name, suffix]);
   assert(isfield(box_param, 'bbox_means'));
   assert(isfield(box_param, 'bbox_stds'));
@@ -40,8 +40,8 @@ function model_path = weakly_supervised(roidb_train, solver_file, model_file, va
             diary; diary; % flush diary
         end
         % weakly_snapshot
-        if mod(caffe_solver.iter(), snapshot_interval) == 0
-            iter_model_path = fullfile(cache_dir, [prefix, '_iter_', num2str(caffe_solver.iter()), suffix]);
+        if mod(caffe_solver.iter(), total_num) == 0
+            iter_model_path = fullfile(cache_dir, [prefix, '_epoch_', num2str(caffe_solver.iter()/total_num), suffix]);
             weakly_snapshot(caffe_solver, box_param.bbox_means, box_param.bbox_stds, iter_model_path);
         end
 

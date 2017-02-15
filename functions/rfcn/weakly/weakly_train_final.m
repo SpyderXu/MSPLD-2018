@@ -14,7 +14,6 @@ function save_model_path = weakly_train_final(conf, imdb_train, roidb_train, var
     ip.addParamValue('max_epoch',         5,              @isscalar); 
     ip.addParamValue('step_epoch',        5,              @isscalar); 
     ip.addParamValue('val_interval',      500,            @isscalar); 
-    ip.addParamValue('snapshot_interval', 300,            @isscalar);
     ip.addParamValue('solver_def_file',   'un-define',    @isstr);
     ip.addParamValue('test_def_file',     'un-define',    @isstr);
     ip.addParamValue('net_file',          'un-define',    @isstr);
@@ -154,7 +153,7 @@ function save_model_path = weakly_train_final(conf, imdb_train, roidb_train, var
 %% training
     model_suffix  = '.caffemodel';
     
-    previous_model = weakly_supervised(warmup_roidb_train, opts.solver_def_file, opts.net_file, opts.val_interval, opts.snapshot_interval, ...
+    previous_model = weakly_supervised(warmup_roidb_train, opts.solver_def_file, opts.net_file, opts.val_interval, ...
 		opts.box_param, conf, cache_dir, 'Loop_0', model_suffix, 'final', opts.step_epoch, opts.max_epoch);
 
     Init_Per_Select = [40, 10, 4, 5, 2, 4, 30, 13, 15, 4,...
@@ -187,10 +186,11 @@ function save_model_path = weakly_train_final(conf, imdb_train, roidb_train, var
 
         if (conf.debug), inloop_debug(conf, C_image_roidb_train, ['Loop_', num2str(index), '_C']); end
 
-        new_image_roidb_train = [warmup_roidb_train; C_image_roidb_train];
+        %new_image_roidb_train = [warmup_roidb_train; C_image_roidb_train];
+        new_image_roidb_train = [warmup_roidb_train; warmup_roidb_train; C_image_roidb_train];
 
         fprintf('.....weakly_supervised train, prepare cost %.1f s ...................\n', toc(begin__time));
-        previous_model        = weakly_supervised(new_image_roidb_train, opts.solver_def_file, opts.net_file, opts.val_interval, opts.snapshot_interval, ...
+        previous_model        = weakly_supervised(new_image_roidb_train, opts.solver_def_file, opts.net_file, opts.val_interval, ...
                                                   opts.box_param, conf, cache_dir, ['Loop_', num2str(index)], model_suffix, 'final', opts.step_epoch, opts.max_epoch);
 
         %%% Check Whether Stop

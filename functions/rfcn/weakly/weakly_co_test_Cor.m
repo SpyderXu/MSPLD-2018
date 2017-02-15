@@ -49,12 +49,12 @@ function mean_loc = weakly_co_test_Cor(conf, imdb, roidb, varargin)
     end
     
     try
-      aboxes = cell(num_images, 1);
+      all_boxes = cell(num_images, 1);
       if opts.ignore_cache
           throw('');
       end
-      aboxes = load(fullfile(cache_dir, ['all_boxes_' imdb.name opts.suffix]));
-      aboxes = aboxes.aboxes;
+      all_boxes = load(fullfile(cache_dir, ['all_boxes_' imdb.name opts.suffix]));
+      all_boxes = all_boxes.all_boxes;
     catch    
 %%      testing 
         % init caffe net
@@ -96,7 +96,7 @@ function mean_loc = weakly_co_test_Cor(conf, imdb, roidb, varargin)
         % all detections are collected into:
         %    all_boxes[image] = 20 x 4 array of detections in
         %    (x1, y1, x2, y2) for each class
-        aboxes = cell(num_images, 1);
+        all_boxes = cell(num_images, 1);
 
         count = 0;
         t_start = tic;
@@ -154,7 +154,7 @@ function mean_loc = weakly_co_test_Cor(conf, imdb, roidb, varargin)
         end
 
         save_file = fullfile(cache_dir, ['all_boxes_' imdb.name opts.suffix]);
-        save(save_file, 'aboxes');
+        save(save_file, 'all_boxes');
         clear save_file pre_boxes add_boxes mx_id boxes scores;
         fprintf('test all images in %f seconds.\n', toc(t_start));
         
@@ -162,9 +162,9 @@ function mean_loc = weakly_co_test_Cor(conf, imdb, roidb, varargin)
         rng(prev_rng);
     end
 
-    for i = 1:numel(aboxes)
-      assert (size(aboxes, 1) == num_classes);
-      assert (size(aboxes, 2) == 4);
+    for i = 1:numel(all_boxes)
+      assert (size(all_boxes{i}, 1) == num_classes);
+      assert (size(all_boxes{i}, 2) == 4);
     end
     % ------------------------------------------------------------------------
     % Peform Corloc evaluation

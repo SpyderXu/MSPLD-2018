@@ -14,7 +14,6 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
     ip.addParamValue('max_epoch',         5,            @isscalar);
     ip.addParamValue('step_epoch',        5,            @isscalar);
     ip.addParamValue('val_interval',      500,          @isscalar); 
-    ip.addParamValue('snapshot_interval', 1000,         @isscalar);
     ip.addParamValue('cache_name',        'un-define', @isstr);
     ip.addParamValue('box_param',         struct(),     @isstruct);
 
@@ -150,7 +149,7 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
     model_suffix   = '.caffemodel';
     previous_model = cell(numel(models), 1);
     for idx = 1:numel(models)
-        previous_model{idx} = weakly_supervised(warmup_roidb_train, models{idx}.solver_def_file, models{idx}.net_file, opts.val_interval, opts.snapshot_interval, ...
+        previous_model{idx} = weakly_supervised(warmup_roidb_train, models{idx}.solver_def_file, models{idx}.net_file, opts.val_interval, ...
                                                 opts.box_param, conf, cache_dir, [models{idx}.name, '_Loop_0'], model_suffix, 'final', opts.step_epoch, opts.max_epoch);
     end
 
@@ -203,7 +202,7 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
 
             new_image_roidb_train = [warmup_roidb_train; C_image_roidb_train];
             
-            previous_model{idx}   = weakly_supervised(new_image_roidb_train, models{idx}.solver_def_file, models{idx}.net_file, opts.val_interval, opts.snapshot_interval, ...
+            previous_model{idx}   = weakly_supervised(new_image_roidb_train, models{idx}.solver_def_file, models{idx}.net_file, opts.val_interval, ...
                                          opts.box_param, conf, cache_dir, [models{idx}.name, '_Loop_', num2str(index)], model_suffix, 'final', opts.step_epoch, opts.max_epoch);
         end
 
