@@ -29,6 +29,7 @@ function mAP = weakly_co_test_mAP(confs, imdb, roidb, varargin)
     assert (numel(opts.net_defs) == numel(opts.net_models));
     assert (numel(opts.net_defs) == numel(confs));
     weakly_assert_conf(confs);
+    classes = confs{1}.classes;
 %%  set cache dir
     cache_dir = fullfile(pwd, 'output', 'weakly_cachedir', opts.cache_name, [imdb.name, '_mAP']);
     mkdir_if_missing(cache_dir);
@@ -225,9 +226,9 @@ function mAP = weakly_co_test_mAP(confs, imdb, roidb, varargin)
         fprintf('Results:\n');
         aps = [res(:).ap]' * 100;
         %disp(aps);
-        assert( numel(confs{1}.classes) == numel(aps));
+        assert( numel(classes) == numel(aps));
         for idx = 1:numel(aps)
-            fprintf('%12s : %5.2f\n', confs{1}.classes{idx}, aps(idx));
+            fprintf('%12s : %5.2f\n', classes{idx}, aps(idx));
         end
         fprintf('\nmean mAP : %.4f\n', mean(aps));
         %disp(mean(aps));

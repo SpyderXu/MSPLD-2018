@@ -150,7 +150,8 @@ function save_model_path = weakly_co_train_final(imdb_train, roidb_train, models
     model_suffix   = '.caffemodel';
     previous_model = cell(numel(models), 1);
     for idx = 1:numel(models)
-        previous_model{idx} = weakly_supervised(warmup_roidb_train, models{idx}.solver_def_file, models{idx}.net_file, opts.val_interval, ...
+        train_mode = weakly_train_mode (models{idx}.conf);
+        previous_model{idx} = weakly_supervised(train_mode, warmup_roidb_train, models{idx}.solver_def_file, models{idx}.net_file, opts.val_interval, ...
                                                 opts.box_param, models{idx}.conf, cache_dir, [models{idx}.name, '_Loop_0'], model_suffix, 'final');
 
         models{idx}.cur_net_file = previous_model{idx};

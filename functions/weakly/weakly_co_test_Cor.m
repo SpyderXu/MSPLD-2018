@@ -27,6 +27,7 @@ function mean_loc = weakly_co_test_Cor(confs, imdb, roidb, varargin)
     assert (numel(opts.net_defs) == numel(opts.net_models));
     assert (numel(opts.net_defs) == numel(confs));
     weakly_assert_conf(confs);
+    classes = confs{1}.classes;
 %%  set cache dir
     cache_dir = fullfile(pwd, 'output', 'weakly_cachedir', opts.cache_name, [imdb.name, '_Cor']);
     mkdir_if_missing(cache_dir);
@@ -160,13 +161,13 @@ function mean_loc = weakly_co_test_Cor(confs, imdb, roidb, varargin)
     % Peform Corloc evaluation
     % ------------------------------------------------------------------------
     tic;
-    [res] = corloc(confs{1}, gt_boxes, all_boxes, 0.5);
+    [res] = corloc(num_classes, gt_boxes, all_boxes, 0.5);
     fprintf('\n~~~~~~~~~~~~~~~~~~~~\n');
     fprintf('Results:\n');
     res = res * 100;
-    assert( numel(confs{1}.classes) == numel(res));
+    assert( numel(classes) == numel(res));
     for idx = 1:numel(res)
-      fprintf('%12s : corloc : %5.2f\n', confs{1}.classes{idx}, res(idx));
+      fprintf('%12s : corloc : %5.2f\n', classes{idx}, res(idx));
     end
     fprintf('\nmean corloc : %.4f\n', mean(res));
     fprintf('~~~~~~~~~~~~~~~~~~~~ evaluate cost %.2f s\n', toc);
@@ -177,9 +178,8 @@ end
 
 
 % ------------------------------------------------------------------------
-function [res] = corloc(conf, gt_boxes, all_boxes, corlocThreshold)
+function [res] = corloc(num_class, gt_boxes, all_boxes, corlocThreshold)
 % ------------------------------------------------------------------------
-    num_class = numel(conf.classes);
     num_image = numel(gt_boxes);     assert (num_image == numel(all_boxes));
     res = zeros(num_class, 1);
     for cls = 1:num_class
