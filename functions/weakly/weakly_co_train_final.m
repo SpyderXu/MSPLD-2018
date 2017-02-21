@@ -1,4 +1,4 @@
-function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, models, varargin)
+function save_model_path = weakly_co_train_final(imdb_train, roidb_train, models, varargin)
 % --------------------------------------------------------
 % R-FCN implementation
 % Modified from MATLAB Faster R-CNN (https://github.com/shaoqingren/faster_rcnn)
@@ -8,47 +8,51 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
 
 %% inputs
     ip = inputParser;
-    ip.addRequired('conf',                              @isstruct);
+    %ip.addRequired('conf',                              @isstruct);
     ip.addRequired('imdb_train',                        @iscell);
     ip.addRequired('roidb_train',                       @iscell);
-    ip.addParamValue('max_epoch',         5,            @isscalar);
-    ip.addParamValue('step_epoch',        5,            @isscalar);
+    ip.addParamValue('per_class_sample',    3,          @isscalar);
     ip.addParamValue('val_interval',      500,          @isscalar); 
-    ip.addParamValue('cache_name',        'un-define', @isstr);
+    ip.addParamValue('base_select',       [1],          @isvector); 
+    ip.addParamValue('rng_seed',            5,          @isscalar); 
+    ip.addParamValue('gamma',             0.3,          @isscalar); 
+    ip.addParamValue('debug',            true,          @islogical); 
+    ip.addParamValue('use_flipped',      true,          @islogical); 
+    ip.addParamValue('boost',           false,          @islogical); 
+    ip.addParamValue('cache_name',        'un-define',  @isstr);
     ip.addParamValue('box_param',         struct(),     @isstruct);
 
-    ip.parse(conf, imdb_train, roidb_train, varargin{:});
+    ip.parse(imdb_train, roidb_train, varargin{:});
     opts = ip.Results;
     assert(iscell(models));
     assert(isfield(opts, 'box_param'));
-    assert(isfield(conf, 'classes'));
-    assert(isfield(conf, 'per_class_sample'));
     assert(isfield(opts.box_param, 'bbox_means'));
     assert(isfield(opts.box_param, 'bbox_stds'));
-    assert(isfield(conf, 'debug'));
-    assert(isfield(conf, 'pseudo_way'));
-    assert(isfield(conf, 'base_select'));
-    assert(isfield(conf, 'nms_config'));
-    assert(numel(models) == 2);
+    %assert(numel(models) == 2);
     for idx = 1:numel(models)
         assert(isfield(models{idx}, 'solver_def_file'));
         assert(isfield(models{idx}, 'test_net_def_file'));
         assert(isfield(models{idx}, 'net_file'));
         assert(isfield(models{idx}, 'name'));
+        assert(isfield(models{idx}, 'conf'));
+        assert(isfield(models{idx}.conf, 'classes'));
+        assert(isfield(models{idx}.conf, 'max_epoch'));
+        assert(isfield(models{idx}.conf, 'step_epoch'));
+        assert(isfield(models{idx}.conf, 'regression'));
     end
     
 %% try to find trained model
-    imdbs_name = cell2mat(cellfun(@(x) x.name, imdb_train, 'UniformOutput', false));
-    cache_dir = fullfile(pwd, 'output', 'weakly_cachedir', opts.cache_name, imdbs_name);
-    conf.debug_cache_dir =  fullfile(pwd, 'output', 'weakly_cachedir', opts.cache_name, 'debug');
-    if (numel(conf.per_class_sample) == 1)
-        conf.per_class_sample = conf.per_class_sample * ones(numel(conf.classes), 1);
+    imdbs_name      = cell2mat(cellfun(@(x) x.name, imdb_train, 'UniformOutput', false));
+    cache_dir       = fullfile(pwd, 'output', 'weakly_cachedir', opts.cache_name, imdbs_name);
+    debug_cache_dir = fullfile(pwd, 'output', 'weakly_cachedir', opts.cache_name, 'debug');
+    classes = models{1}.conf.classes;
+    if (numel(opts.per_class_sample) == 1)
+        opts.per_class_sample = opts.per_class_sample * ones(numel(classes), 1);
     end
-    
 %% init
     % set random seed
-    prev_rng = seed_rand(conf.rng_seed);
-    caffe.set_random_seed(conf.rng_seed);
+    prev_rng = seed_rand(opts.rng_seed);
+    caffe.set_random_seed(opts.rng_seed);
     
     % init caffe solver
     mkdir_if_missing(cache_dir);
@@ -58,28 +62,25 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
     % init log
     timestamp = datestr(datevec(now()), 'yyyymmdd_HHMMSS');
     mkdir_if_missing(fullfile(cache_dir, 'log'));
-    log_file = fullfile(cache_dir, 'log', ['train_', timestamp, '.txt']);
+    log_file = fullfile(cache_dir, 'log', ['co_train_', timestamp, '.txt']);
     diary(log_file);
 
-    % set gpu/cpu
+    % set gpu mode, mush run on gpu
     caffe.reset_all();
-    if conf.use_gpu
-        caffe.set_mode_gpu();
-    else
-        caffe.set_mode_cpu();
-    end
+    caffe.set_mode_gpu(); 
     
-    disp('conf:');
-    disp(conf);
     disp('opts:');
     disp(opts);
+    for idx = 1:numel(models)
+      fprintf('conf: %2d : %s', idx, models{idx}.name);
+      disp(models{idx}.conf);
+    end
     
 
 %% making tran/val data
     fprintf('Preparing training data...');
-    %[image_roidb_train] = score_prepare_image_roidb(conf, opts.imdb_train, opts.roidb_train);
-    [image_roidb_train] = rfcn_prepare_image_roidb(conf, opts.imdb_train, opts.roidb_train, opts.box_param.bbox_means, opts.box_param.bbox_stds);
-    [warmup_roidb_train, image_roidb_train] = weakly_sample_train(image_roidb_train, conf.per_class_sample, opts.imdb_train{1}.flip);
+    [image_roidb_train] = weakly_prepare_image_roidb(models{1}.conf, opts.imdb_train, opts.roidb_train, opts.box_param.bbox_means, opts.box_param.bbox_stds);
+    [warmup_roidb_train, image_roidb_train] = weakly_sample_train(image_roidb_train, opts.per_class_sample, opts.imdb_train{1}.flip);
     %Draw Warmup -- Debug
     %weakly_draw_warm(conf, warmup_roidb_train, 'sampled_warmup');
     fprintf('Done.\n');
@@ -99,7 +100,8 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
                         'pseudo_boxes', [], ...
                         'Debug_GT_Cls', image_roidb_train(index).class(gt, :), ...
                         'Debug_GT_Box', image_roidb_train(index).boxes(gt, :), ...
-                        'image_label', image_roidb_train(index).image_label);
+                        'image_label', image_roidb_train(index).image_label, ...
+                        'index', index);
         filtered_image_roidb_train{end+1} = Struct;
     end
     fprintf('Images after filtered : %d, total : %d\n', numel(filtered_image_roidb_train), numel(image_roidb_train));
@@ -118,12 +120,13 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
                         'pseudo_boxes', [], ...
                         'Debug_GT_Cls', warmup_roidb_train(index).class(gt, :), ...
                         'Debug_GT_Box', warmup_roidb_train(index).boxes(gt, :), ...
-                        'image_label', warmup_roidb_train(index).image_label);
+                        'image_label', warmup_roidb_train(index).image_label, ...
+                        'index', index);
         filtered_image_roidb_train{end+1} = Struct;
     end
     warmup_roidb_train = cat(1, filtered_image_roidb_train{:});
     %% Show Box Per class
-    num_class = numel(conf.classes);
+    num_class = numel(classes);
     boxes_per_class   = zeros(num_class, 2);
     for index = 1:numel(image_roidb_train)
         class = image_roidb_train(index).image_label;
@@ -138,11 +141,9 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
         end
     end
     clear class j timestamp log_file index filtered_image_roidb_train roidb_train imdb_train;
-    %boxes_per_class = boxes_per_class(:, 2);
 %% assert conf flip attr
-    conf.flip = opts.imdb_train{1}.flip;
     for idx = 1:numel(opts.imdb_train)
-        assert (opts.imdb_train{idx}.flip == 1);
+        assert ( opts.imdb_train{idx}.flip == opts.use_flipped);
     end
 
 %% training
@@ -150,68 +151,46 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
     previous_model = cell(numel(models), 1);
     for idx = 1:numel(models)
         previous_model{idx} = weakly_supervised(warmup_roidb_train, models{idx}.solver_def_file, models{idx}.net_file, opts.val_interval, ...
-                                                opts.box_param, conf, cache_dir, [models{idx}.name, '_Loop_0'], model_suffix, 'final', opts.step_epoch, opts.max_epoch);
-    end
+                                                opts.box_param, models{idx}.conf, cache_dir, [models{idx}.name, '_Loop_0'], model_suffix, 'final');
 
-    LIMIT = 2;
-    boost = false;
+        models{idx}.cur_net_file = previous_model{idx};
+    end
 
     pre_keep = false(numel(image_roidb_train), 1);
 
     Init_Per_Select = [40, 10, 10, 10, 15, 10, 40, 13, 15, 10,...
                        15, 15,  3,  8, 10, 15, 10, 10, 35, 25];
 %% Start Training
-    for index = 1:numel(conf.base_select)
-        base_select = conf.base_select(index);
+    for index = 1:numel(opts.base_select)
+
+        base_select = opts.base_select(index);
 
         for idx = 1:numel(models)
             fprintf('\n-------Start Loop %2d == %8s ==with base_select : %4.2f-------\n', index, models{idx}.name, base_select);
-            caffe.reset_all();
-            use_for_pseudo = [];
-            if (strcmp(conf.pseudo_way, 'both')==1 || strcmp(conf.pseudo_way, 'oppo')==1)
-                oppo_test_net = caffe.Net(models{3-idx}.test_net_def_file, 'test');
-                oppo_test_net.copy_from(previous_model{3-idx});
-                use_for_pseudo{end+1} = oppo_test_net;
-            end
-            if (strcmp(conf.pseudo_way, 'both')==1 || strcmp(conf.pseudo_way, 'self')==1)
-                self_test_net = caffe.Net(models{idx}.test_net_def_file, 'test');
-                self_test_net.copy_from(previous_model{idx});
-                use_for_pseudo{end+1} = self_test_net;
-            end
-            assert (numel(use_for_pseudo) > 0);
             
-            [A_image_roidb_train, A_keep_id] = weakly_generate_pseudo(conf, use_for_pseudo, image_roidb_train, opts.box_param.bbox_means, opts.box_param.bbox_stds, boost);
+            [A_image_roidb_train] = weakly_generate_pseudo(models, image_roidb_train, opts.boost);
 
             PER_Select = ceil(Init_Per_Select * base_select);
             %% Filter Unreliable Image with pseudo-boxes
-            %[B_image_roidb_train, B_keep_id] = weakly_filter_roidb(conf, {oppo_test_net,self_test_net}, A_image_roidb_train, 15, 0.3);
-            [B_image_roidb_train, B_keep_id] = weakly_filter_roidb(conf, use_for_pseudo, A_image_roidb_train, 15, PER_Select*LIMIT);
-            keep_id = A_keep_id(B_keep_id);
+            [B_image_roidb_train] = weakly_filter_roidb(models, A_image_roidb_train, 15, PER_Select);
+            if (opts.debug), inloop_debug(B_image_roidb_train, classes, debug_cache_dir, ['L_', num2str(index), '_', models{idx}.name, '_B']); end
 
-            caffe.reset_all();
-            oppo_train_solver = caffe.Solver(models{3-idx}.solver_def_file);
-            oppo_train_solver.net.copy_from(previous_model{3-idx});
-            self_train_solver = caffe.Solver(models{idx}.solver_def_file);
-            self_train_solver.net.copy_from(previous_model{idx});
-
-            [C_image_roidb_train, cur_keep] = weakly_generate_co_v(conf, oppo_train_solver, self_train_solver, B_image_roidb_train, keep_id, pre_keep, PER_Select);
-
-            pre_keep = cur_keep;
-            %% Draw
-            if (conf.debug), inloop_debug(conf, C_image_roidb_train, ['Loop_', models{idx}.name, '_', num2str(index), '_C']); end
+            [B_image_roidb_train] = weakly_full_targets(models{idx}.conf, B_image_roidb_train, opts.box_param.bbox_means, opts.box_param.bbox_stds);
+            [C_image_roidb_train] = weakly_generate_co_v(models{idx}, B_image_roidb_train, pre_keep, PER_Select, opts.gamma);
+            pre_keep = false(numel(image_roidb_train), 1);
+            for j = 1:numel(C_image_roidb_train) , pre_keep(C_image_roidb_train(j).index) = true; end
+            if (opts.debug), inloop_debug(C_image_roidb_train, classes, debug_cache_dir, ['L_', num2str(index), '_', models{idx}.name, '_C']); end
 
             new_image_roidb_train = [warmup_roidb_train; C_image_roidb_train];
             
-            previous_model{idx}   = weakly_supervised(new_image_roidb_train, models{idx}.solver_def_file, models{idx}.net_file, opts.val_interval, ...
-                                         opts.box_param, conf, cache_dir, [models{idx}.name, '_Loop_', num2str(index)], model_suffix, 'final', opts.step_epoch, opts.max_epoch);
+            train_mode = weakly_train_mode (models{idx}.conf);
+            previous_model{idx}   = weakly_supervised(train_mode, new_image_roidb_train, models{idx}.solver_def_file, models{idx}.net_file, opts.val_interval, ...
+                                                      opts.box_param, models{idx}.conf, cache_dir, [models{idx}.name, '_Loop_', num2str(index)], model_suffix, 'final');
         end
 
-        %%% Check Whether Stop
-        %Uplimit = 0.8;
-        %if (numel(B_image_roidb_train) * Uplimit <= sum(PER_Select)) 
-        %    fprintf('Stop iteration due to reach max numbers : %d\n', ceil(numel(B_image_roidb_train) * Uplimit));
-        %    break;
-        %end
+        for idx = 1:numel(models)
+            models{idx}.cur_net_file = previous_model{idx};
+        end
     end
 
     save_model_path    = cell(numel(models), 1);
@@ -228,9 +207,10 @@ function save_model_path = weakly_co_train_final(conf, imdb_train, roidb_train, 
     rng(prev_rng);
 end
 
-function inloop_debug(conf, image_roidb_train, debug_dir)
+function inloop_debug(image_roidb_train, classes, debug_cache_dir, dir_name)
+  debug_cache_dir = fullfile(debug_cache_dir, dir_name);
   for iii = 1:numel(image_roidb_train)
-    weakly_debug_final(conf, image_roidb_train(iii), debug_dir);
+    weakly_debug_final(classes, debug_cache_dir, image_roidb_train(iii));
   end
 end
 

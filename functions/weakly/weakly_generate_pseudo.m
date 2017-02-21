@@ -1,10 +1,19 @@
-function [new_image_roidb_train, keep] = weakly_generate_pseudo(conf, test_nets, image_roidb_train, bbox_means, bbox_stds, boost)
-    assert (conf.flip); % argument
+function [new_image_roidb_train] = weakly_generate_pseudo(test_models, image_roidb_train, boost)
 
+    begin_time = tic;
+    caffe.reset_all();                                 classes = test_models{1}.conf.classes;
     num_roidb        = numel(image_roidb_train);       assert (rem(num_roidb,2) == 0);
-    num_classes      = numel(conf.classes);
-    tic;
+    num_classes      = numel(classes);
     thresh_hold = 0.2;
+
+    test_nets   = cell(numel(test_models), 1);
+    confs       = cell(numel(test_models), 1);
+    for idx = 1:numel(test_models)
+        test_nets{idx} = caffe.Net( test_models{idx}.test_net_def_file , 'test' );
+        test_nets{idx}.copy_from( test_models{idx}.cur_net_file );
+        assert (test_models{idx}.conf.use_flipped); % argument
+        confs{idx} = test_models{idx}.conf;
+    end
 
     for index = 1:num_roidb
         assert (isempty(image_roidb_train(index).overlap));
@@ -13,70 +22,30 @@ function [new_image_roidb_train, keep] = weakly_generate_pseudo(conf, test_nets,
     pseudo_boxes = cell(num_roidb, 1);
     for index = 1:(num_roidb/2)
         if (rem(index, 500) == 0 || index == num_roidb/2)
-            fprintf('Handle %3d / %3d image_roidb_train, cost : %.1f s\n', index, num_roidb/2, toc);
+            fprintf('Handle %4d / %4d image_roidb_train, cost : %.1f s\n', index, num_roidb/2, toc);
         end
         reverse_idx = index + (num_roidb/2);
         %if (reverse_idx > num_roidb), reverse_idx = index - (num_roidb/2); end
         cur_roidb_train = {image_roidb_train(index), image_roidb_train(reverse_idx)};
-        [boxes] = generate_pseudo(conf, test_nets, cur_roidb_train, num_classes, thresh_hold, boost);
+        [boxes] = generate_pseudo(confs, test_nets, cur_roidb_train, num_classes, thresh_hold, boost);
         assert (numel(boxes) == 2);
         pseudo_boxes{index}       = boxes{1};
         pseudo_boxes{reverse_idx} = boxes{2};
     end
 
     new_image_roidb_train = [];
-    keep = [];
     for index = 1:num_roidb
         if (isempty(pseudo_boxes{index})), continue; end
-        pos_boxes = {pseudo_boxes{index}.box};   pos_boxes = cat(1, pos_boxes{:});
-        pos_class = {pseudo_boxes{index}.class}; pos_class = cat(1, pos_class{:});
-        pos_score = {pseudo_boxes{index}.score}; pos_score = cat(1, pos_score{:});
-
-        rois        = image_roidb_train(index).boxes;
-        rois        = [pos_boxes; rois];
-        num_boxes   = size(rois, 1);
-        overlap     = zeros(num_boxes, num_classes, 'single');
-        for bid = 1:numel(pos_class)
-            gt_classes = pos_class(bid);
-            gt_boxes   = pos_boxes(bid, :);
-            overlap(:, gt_classes) = max(overlap(:, gt_classes), boxoverlap(rois, gt_boxes));
-        end
-        %append_bbox_regression_targets
-        [bbox_targets, is_valid] = weakly_compute_targets(conf, rois, overlap);
-        if(is_valid == false), continue; end
         new_image_roidb_train{end+1}            = image_roidb_train(index);
-        new_image_roidb_train{end}.boxes        = rois;
-        new_image_roidb_train{end}.overlap      = overlap;
-        new_image_roidb_train{end}.bbox_targets = bbox_targets;
         new_image_roidb_train{end}.pseudo_boxes = pseudo_boxes{index};
-        keep(end+1) = index;
     end
-
     new_image_roidb_train = cat(1, new_image_roidb_train{:});
-    %% Normalize targets
-    num_images = length(new_image_roidb_train);
-    % Infer number of classes from the number of columns in gt_overlaps
-    if conf.bbox_class_agnostic
-        num_classes = 1;
-    else
-        num_classes = size(new_image_roidb_train(1).overlap, 2);
-    end
-    for idx = 1:num_images
-        targets = new_image_roidb_train(idx).bbox_targets;
-        for cls = 1:num_classes
-            cls_inds = find(targets(:, 1) == cls);
-            if ~isempty(cls_inds)
-                new_image_roidb_train(idx).bbox_targets(cls_inds, 2:end) = ...
-                    bsxfun(@minus, new_image_roidb_train(idx).bbox_targets(cls_inds, 2:end), bbox_means(cls+1, :));
-                new_image_roidb_train(idx).bbox_targets(cls_inds, 2:end) = ...
-                    bsxfun(@rdivide, new_image_roidb_train(idx).bbox_targets(cls_inds, 2:end), bbox_stds(cls+1, :));
-            end
-        end
-    end
-    fprintf('Generate new_image_roidb_train : %d, Cost : %.1f s\n', num_images, toc);
+    weakly_debug_info( classes, new_image_roidb_train );
+    fprintf('Generate new_image_roidb_train : %4d -> %4d, Cost : %.1f s\n', num_roidb, numel(new_image_roidb_train), toc(begin_time));
+    caffe.reset_all();
 end
 
-function structs = generate_pseudo(conf, test_nets, image_roidb_train, num_classes, thresh_hold, boost)
+function structs = generate_pseudo(confs, test_nets, image_roidb_train, num_classes, thresh_hold, boost)
   max_rois_num_in_gpu = 10000;
   assert (numel(image_roidb_train) == 1 || numel(image_roidb_train) == 2);
   box_num = size(image_roidb_train{1}.boxes, 1);
@@ -90,9 +59,9 @@ function structs = generate_pseudo(conf, test_nets, image_roidb_train, num_class
   final_boxes = [];
   final_score = [];
   for idx = 1:numel(test_nets)
-    [boxes, scores] = w_im_detect(conf, test_nets{idx}, imread(image_roidb_train{1}.image_path), image_roidb_train{1}.boxes, max_rois_num_in_gpu, boost);
+    [boxes, scores] = w_im_detect(confs{idx}, test_nets{idx}, imread(image_roidb_train{1}.image_path), image_roidb_train{1}.boxes, max_rois_num_in_gpu, boost);
     if (numel(image_roidb_train) == 2)
-      [rev_boxes, rev_scores] = w_im_detect(conf, test_nets{idx}, imread(image_roidb_train{2}.image_path), image_roidb_train{2}.boxes, max_rois_num_in_gpu, boost);
+      [rev_boxes, rev_scores] = w_im_detect(confs{idx}, test_nets{idx}, imread(image_roidb_train{2}.image_path), image_roidb_train{2}.boxes, max_rois_num_in_gpu, boost);
       rev_boxes(:, [1,3]) = image_roidb_train{1}.im_size(2) + 1 - rev_boxes(:, [3,1]);
       boxes  = (boxes + rev_boxes) / 2;
       scores = (scores+ rev_scores) / 2;
@@ -118,11 +87,7 @@ function structs = generate_pseudo(conf, test_nets, image_roidb_train, num_class
   for Cls = 1:num_classes
     aboxes  = [image_roidb_train{1}.boxes, final_score(:,Cls)];
     %aboxes  = [final_boxes(:,(Cls-1)*4+1:Cls*4), final_score(:,Cls)];
-    if (conf.nms_config == false)
-        keep           = nms(aboxes, 0.3);
-    else
-        keep           = nms_min(aboxes, 0.3);
-    end
+    keep           = nms(aboxes, 0.3);
     keep           = keep(ID_bbx(keep)==Cls);
     keep           = keep(final_score(keep, Cls) >= thresh_hold);
     for j = 1:numel(keep)

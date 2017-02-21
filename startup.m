@@ -32,5 +32,6 @@ function startup()
     mkdir_if_missing(fullfile(curdir, 'models'));
 
     rfcn_build();
+
     fprintf('rfcn startup done\n');
 end

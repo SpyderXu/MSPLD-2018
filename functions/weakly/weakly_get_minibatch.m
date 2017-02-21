@@ -1,5 +1,4 @@
-function net_inputs = rfcn_get_minibatch(conf, image_roidb)
-% net_inputs = rfcn_get_minibatch(conf, image_roidb)
+function net_inputs = weakly_get_minibatch(conf, image_roidb)
 % --------------------------------------------------------
 % R-FCN implementation
 % Modified from MATLAB Faster R-CNN (https://github.com/shaoqingren/faster_rcnn)
@@ -42,7 +41,7 @@ function net_inputs = rfcn_get_minibatch(conf, image_roidb)
             sample_rois(conf, image_roidb(i), fg_rois_per_image, rois_per_image);
         
         % Add to ROIs blob
-        feat_rois = rfcn_map_im_rois_to_feat_rois(conf, im_rois, im_scales(i));
+        feat_rois = weakly_map_im_rois_to_feat_rois(conf, im_rois, im_scales(i));
         batch_ind = i * ones(size(feat_rois, 1), 1);
         rois_blob_this_image = [batch_ind, feat_rois];
         rois_blob = [rois_blob; rois_blob_this_image];
@@ -69,6 +68,10 @@ function net_inputs = rfcn_get_minibatch(conf, image_roidb)
     assert(~isempty(bbox_loss_blob));
     
     net_inputs = {im_blob, rois_blob, labels_blob, bbox_targets_blob, bbox_loss_blob};
+
+    if (conf.regression == false)
+        net_inputs = net_inputs(1:3);
+    end
 end
 
 %% Build an input blob from the images in the roidb at the specified scales.
@@ -165,5 +168,14 @@ function [bbox_targets, bbox_loss_weights] = get_bbox_regression_labels(conf, bb
     end
 end
 
+function [feat_rois] = weakly_map_im_rois_to_feat_rois(conf, im_rois, im_scale_factor)
+%% Map a ROI in image-pixel coordinates to a ROI in feature coordinates.
+% in matlab's index (start from 1)
+
+    feat_rois = round((im_rois-1) * im_scale_factor) + 1;
+
+    %feat_rois = round((im_rois-1) * im_scale_factor / single(conf.feat_stride)) + 1;
+
+end
 
 

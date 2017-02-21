@@ -3692,11 +3692,11 @@ layer {
 }
 
 layer {
-   name: "accuarcy"
+   name: "accuracy"
    type: "Accuracy"
    bottom: "cls_score"
    bottom: "labels"
-   top: "accuarcy"
+   top: "accuracy"
    #include: { phase: TEST }
    propagate_down: false
    propagate_down: false

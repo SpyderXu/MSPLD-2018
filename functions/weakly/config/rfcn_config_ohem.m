@@ -1,4 +1,4 @@
-function conf = rfcn_config_simple(varargin)
+function conf = rfcn_config_ohem(varargin)
 % conf = rfcn_config(varargin)
 % --------------------------------------------------------
 % R-FCN implementation
@@ -20,16 +20,16 @@ function conf = rfcn_config_simple(varargin)
     % Images per batch
     ip.addParamValue('ims_per_batch',   2,              @isscalar);
     % Minibatch size, set as -1 if using all the rois
-    ip.addParamValue('batch_size',      256,            @isscalar);
+    ip.addParamValue('batch_size',      -1,             @isscalar);
     % Fraction of minibatch that is foreground labeled (class > 0),
     % which is disabled when batch_size = -1
-    ip.addParamValue('fg_fraction',     0.25,           @isscalar);
+    ip.addParamValue('fg_fraction',     -1,             @isscalar);
     % Overlap threshold for a ROI to be considered foreground (if >= fg_thresh)
     ip.addParamValue('fg_thresh',       0.5,            @isscalar);
     % Overlap threshold for a ROI to be considered background (class = 0 if
     % overlap in [bg_thresh_lo, bg_thresh_hi))
     ip.addParamValue('bg_thresh_hi',    0.5,            @isscalar);
-    ip.addParamValue('bg_thresh_lo',    0.1,            @isscalar);
+    ip.addParamValue('bg_thresh_lo',    0.0,            @isscalar);
     % mean image, in RGB order
     ip.addParamValue('image_means',     128,            @ismatrix);
     % Use horizontally-flipped images during training?
@@ -37,11 +37,15 @@ function conf = rfcn_config_simple(varargin)
     % Vaild training sample (IoU > bbox_thresh) for bounding box regresion
     ip.addParamValue('bbox_thresh',     0.5,            @isscalar);
     % Whether to perform class agnostic bbox regression
-    ip.addParamValue('bbox_class_agnostic', true,  @islogical);
+    ip.addParamValue('bbox_class_agnostic', true,       @islogical);
 
-    % random seed
-    ip.addParamValue('rng_seed',        6,              @isscalar);
+    % class cells, each is a string, denotes the class name
+    ip.addParamValue('classes',         {},             @iscell);
 
+    % train setting max epoch and step epoch
+    ip.addParamValue('max_epoch',       9,              @isscalar);
+    ip.addParamValue('step_epoch',      8,              @isscalar);
+    ip.addParamValue('regression',     true,            @islogical);
     
     %% testing
     ip.addParamValue('test_scales',     600,            @isscalar);

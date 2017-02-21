@@ -3763,11 +3763,11 @@ layer {
 }
 
 layer {
-   name: "accuarcy"
+   name: "accuracy"
    type: "Accuracy"
    bottom: "cls_score"
    bottom: "labels_ohem"
-   top: "accuarcy"
+   top: "accuracy"
    #include: { phase: TEST }
    accuracy_param {
         ignore_label: -1

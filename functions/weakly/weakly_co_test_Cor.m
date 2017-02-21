@@ -1,4 +1,4 @@
-function mean_loc = weakly_co_test_Cor(conf, imdb, roidb, varargin)
+function mean_loc = weakly_co_test_Cor(confs, imdb, roidb, varargin)
 % --------------------------------------------------------
 % R-FCN implementation
 % Modified from MATLAB Faster R-CNN (https://github.com/shaoqingren/faster_rcnn)
@@ -8,24 +8,25 @@ function mean_loc = weakly_co_test_Cor(conf, imdb, roidb, varargin)
 
 %% inputs
     ip = inputParser;
-    ip.addRequired('conf',                              @isstruct);
+    ip.addRequired('confs',                             @iscell);
     ip.addRequired('imdb',                              @isstruct);
     ip.addRequired('roidb',                             @isstruct);
-    ip.addParamValue('test_iteration',  1,              @isscalar);
     ip.addParamValue('net_defs',                        @iscell);
     ip.addParamValue('net_models',                      @iscell);
     ip.addParamValue('cache_name',      '',             @isstr);
     ip.addParamValue('suffix',          '',             @isstr);
+    ip.addParamValue('rng_seed',         5,             @isscalar);
     ip.addParamValue('log_prefix',      '',             @isstr);
     ip.addParamValue('dis_itertion',    500,            @isscalar);
     ip.addParamValue('ignore_cache',    false,          @islogical);
     
-    ip.parse(conf, imdb, roidb, varargin{:});
+    ip.parse(confs, imdb, roidb, varargin{:});
     opts = ip.Results;
     
 
     assert (numel(opts.net_defs) == numel(opts.net_models));
-    assert(isfield(conf, 'classes'));
+    assert (numel(opts.net_defs) == numel(confs));
+    weakly_assert_conf(confs);
 %%  set cache dir
     cache_dir = fullfile(pwd, 'output', 'weakly_cachedir', opts.cache_name, [imdb.name, '_Cor']);
     mkdir_if_missing(cache_dir);
@@ -67,11 +68,11 @@ function mean_loc = weakly_co_test_Cor(conf, imdb, roidb, varargin)
         end
 
         % set random seed
-        prev_rng = seed_rand(conf.rng_seed);
-        caffe.set_random_seed(conf.rng_seed);
+        prev_rng = seed_rand(opts.rng_seed);
+        caffe.set_random_seed(opts.rng_seed);
 
         % set gpu/cpu
-        if conf.use_gpu
+        if confs{1}.use_gpu
             caffe.set_mode_gpu();
         else
             caffe.set_mode_cpu();
@@ -82,8 +83,10 @@ function mean_loc = weakly_co_test_Cor(conf, imdb, roidb, varargin)
 
         disp('opts:');
         disp(opts);
-        disp('conf:');
-        disp(conf);
+        for i = 1:numel(confs)
+            fprintf('conf : %d :', i);
+            disp(confs{i});
+        end
         
         %heuristic: keep an average of 160 detections per class per images prior to NMS
         max_per_set = 160 * num_images;
@@ -113,21 +116,8 @@ function mean_loc = weakly_co_test_Cor(conf, imdb, roidb, varargin)
             scores = [];
             for jj = 1:numel(caffe_net)
                 pre_boxes = d.boxes(~d.gt, :);
-                [cboxes, cscores] = weakly_im_detect(conf, caffe_net{jj}, im, pre_boxes, max_rois_num_in_gpu);
-				if (opts.test_iteration == 2)
-					[~, mx_id] = max(cscores, [], 2);
-					mx_id = (mx_id-1)*4;
-					add_boxes = single(zeros(size(pre_boxes)));
-					parfor box_id = 1:size(pre_boxes,1)
-						for coor = 1:4, add_boxes(box_id, coor) = cboxes(box_id, mx_id(box_id)+coor); end
-					end
-					pre_boxes = (pre_boxes+add_boxes)./2;
-					[cboxes, cscores] = weakly_im_detect(conf, caffe_net{jj}, im, pre_boxes, max_rois_num_in_gpu);
-				else
-					assert(opts.test_iteration == 1);
-				end
-
-                if (isempty(boxes) && isempty(scores))
+                [cboxes, cscores] = weakly_im_detect(confs{jj}, caffe_net{jj}, im, pre_boxes, max_rois_num_in_gpu);
+                if (jj == 1)
                     boxes  = cboxes;
                     scores = cscores;
                 else
@@ -170,13 +160,13 @@ function mean_loc = weakly_co_test_Cor(conf, imdb, roidb, varargin)
     % Peform Corloc evaluation
     % ------------------------------------------------------------------------
     tic;
-    [res] = corloc(conf, gt_boxes, all_boxes, 0.5);
+    [res] = corloc(confs{1}, gt_boxes, all_boxes, 0.5);
     fprintf('\n~~~~~~~~~~~~~~~~~~~~\n');
     fprintf('Results:\n');
     res = res * 100;
-    assert( numel(conf.classes) == numel(res));
+    assert( numel(confs{1}.classes) == numel(res));
     for idx = 1:numel(res)
-      fprintf('%12s : corloc : %5.2f\n', conf.classes{idx}, res(idx));
+      fprintf('%12s : corloc : %5.2f\n', confs{1}.classes{idx}, res(idx));
     end
     fprintf('\nmean corloc : %.4f\n', mean(res));
     fprintf('~~~~~~~~~~~~~~~~~~~~ evaluate cost %.2f s\n', toc);

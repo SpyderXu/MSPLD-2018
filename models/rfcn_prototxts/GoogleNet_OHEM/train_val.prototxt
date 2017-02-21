@@ -35,6 +35,8 @@ layer {
   input_param { shape: { dim: 1 dim: 8 dim: 1 dim: 1 } }
 }
 
+#--------------- conv ----
+
 layer {
   name: "conv1/7x7_s2"
   type: "Convolution"
@@ -2376,11 +2378,11 @@ layer {
 }
 
 layer {
-   name: "accuarcy"
+   name: "accuracy"
    type: "Accuracy"
    bottom: "cls_score"
    bottom: "labels_ohem"
-   top: "accuarcy"
+   top: "accuracy"
    accuracy_param {
         ignore_label: -1
    }

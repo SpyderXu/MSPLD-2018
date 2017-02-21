@@ -5,7 +5,12 @@ function [pred_boxes, scores] = weakly_im_detect(conf, caffe_net, im, boxes, max
 % Copyright (c) 2016, Jifeng Dai
 % Licensed under The MIT License [see LICENSE for details]
     assert (numel(caffe_net.inputs) == 2);
-    assert (numel(caffe_net.outputs) == 2);
+    regression = conf.regression;
+    if (regression)
+        assert (numel(caffe_net.outputs) == 2);
+    else
+        assert (numel(caffe_net.outputs) == 1);
+    end
     
     [im_blob, rois_blob, ~] = get_blobs(conf, im, boxes);
     
@@ -27,7 +32,9 @@ function [pred_boxes, scores] = weakly_im_detect(conf, caffe_net, im, boxes, max
     
     total_rois = size(rois_blob, 4);
     total_scores = cell(ceil(total_rois / max_rois_num_in_gpu), 1);
-    total_box_deltas = cell(ceil(total_rois / max_rois_num_in_gpu), 1);
+    if (regression)
+        total_box_deltas = cell(ceil(total_rois / max_rois_num_in_gpu), 1);
+    end
     for i = 1:ceil(total_rois / max_rois_num_in_gpu)
         
         sub_ind_start = 1 + (i-1) * max_rois_num_in_gpu;
@@ -53,28 +60,39 @@ function [pred_boxes, scores] = weakly_im_detect(conf, caffe_net, im, boxes, max
         end
 
         % Apply bounding-box regression deltas
-        box_deltas = caffe_net.blobs('bbox_pred').get_data();
-        box_deltas = squeeze(box_deltas)';
-        
+        if (regression)
+            box_deltas = caffe_net.blobs('bbox_pred').get_data();
+            box_deltas = squeeze(box_deltas)';
+            total_box_deltas{i} = box_deltas;
+        end
         total_scores{i} = scores;
-        total_box_deltas{i} = box_deltas;
     end 
     
     scores = cell2mat(total_scores);
-    box_deltas = cell2mat(total_box_deltas);
-    
-    pred_boxes = rfcn_bbox_transform_inv(boxes, box_deltas);
-    pred_boxes = clip_boxes(pred_boxes, size(im, 2), size(im, 1));
+
+    if (regression)
+        box_deltas = cell2mat(total_box_deltas);
+
+        pred_boxes = rfcn_bbox_transform_inv(boxes, box_deltas);
+        pred_boxes = clip_boxes(pred_boxes, size(im, 2), size(im, 1));
+    end
 
     % Map scores and predictions back to the original set of boxes
     scores = scores(inv_index, :);
-    pred_boxes = pred_boxes(inv_index, :);
-    
+    if (regression)
+        pred_boxes = pred_boxes(inv_index, :);
+    end
     % remove scores and boxes for back-ground
-    pred_boxes = pred_boxes(:, 5:end);
+    if (regression)
+        pred_boxes = pred_boxes(:, 5:end);
+    end
     scores = scores(:, 2:end);
-    if conf.bbox_class_agnostic
+    if (conf.bbox_class_agnostic && regression)
         pred_boxes = repmat(pred_boxes, [1, size(scores,2)]);
+    end
+    if (regression == false)
+        assert (size(boxes, 1) == size(scores, 1));
+        pred_boxes = repmat(boxes(inv_index, :), 1, size(scores, 2));
     end
 end
 
