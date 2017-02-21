@@ -22,7 +22,7 @@ function [new_image_roidb_train] = weakly_generate_pseudo(test_models, image_roi
     pseudo_boxes = cell(num_roidb, 1);
     for index = 1:(num_roidb/2)
         if (rem(index, 500) == 0 || index == num_roidb/2)
-            fprintf('Handle %4d / %4d image_roidb_train, cost : %.1f s\n', index, num_roidb/2, toc);
+            fprintf('Handle %4d / %4d image_roidb_train, cost : %.1f s\n', index, num_roidb/2, toc(begin_time));
         end
         reverse_idx = index + (num_roidb/2);
         %if (reverse_idx > num_roidb), reverse_idx = index - (num_roidb/2); end

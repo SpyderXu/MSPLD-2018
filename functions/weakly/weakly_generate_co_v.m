@@ -1,5 +1,6 @@
 function [new_image_roidb_train, ret_keep] = weakly_generate_co_v(train_model, image_roidb_train, pre_keep, SEL_PER_CLS, gamma)
 
+  begin_time = tic;
   caffe.reset_all();
   train_solver = caffe.Solver(train_model.solver_def_file);
   train_solver.net.copy_from( train_model.cur_net_file );
@@ -9,9 +10,8 @@ function [new_image_roidb_train, ret_keep] = weakly_generate_co_v(train_model, i
   Loss = Inf(numel(image_roidb_train), numel(classes));
   smallest = 20;
 
-  begin_time = tic;
   for idx = 1:number
-    if (rem(idx, 500) == 0 || idx == number), fprintf('weakly_generate_v : handle %4d / %4d image_roidb_train, cost %.2f s\n', idx, number, toc); end
+    if (rem(idx, 500) == 0 || idx == number), fprintf('weakly_generate_v : handle %4d / %4d image_roidb_train, cost %.2f s\n', idx, number, toc(begin_time)); end
     ok = check_filter_img(image_roidb_train(idx).pseudo_boxes, smallest);
     if (ok == false), continue; end
 
@@ -42,6 +42,7 @@ function [new_image_roidb_train, ret_keep] = weakly_generate_co_v(train_model, i
   
   new_image_roidb_train = image_roidb_train(cur_keep);
   weakly_debug_info( classes, new_image_roidb_train);
+  fprintf('weakly_generate_co_v %4d -> %4d, cost %.1f s\n', number, numel(new_image_roidb_train), toc(begin_time));
   caffe.reset_all();
 end
 
