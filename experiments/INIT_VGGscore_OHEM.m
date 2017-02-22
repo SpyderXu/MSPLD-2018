@@ -18,13 +18,13 @@ gamma                       = 0.0;
 base_select                 = zeros(0,1);
 % model
 models                      = cell(1,1);
-models{1}.solver_def_file   = fullfile(pwd, 'models', 'rfcn_prototxts', 'VGG16_score', 'solver_lr1_3.prototxt');
-models{1}.test_net_def_file = fullfile(pwd, 'models', 'rfcn_prototxts', 'VGG16_score', 'test.prototxt');
+models{1}.solver_def_file   = fullfile(pwd, 'models', 'rfcn_prototxts', 'VGG16_score_OHEM', 'solver_lr1_3.prototxt');
+models{1}.test_net_def_file = fullfile(pwd, 'models', 'rfcn_prototxts', 'VGG16_score_OHEM', 'test.prototxt');
 models{1}.net_file          = fullfile(pwd, 'models', 'pre_trained_models', 'VGG16', 'vgg16.caffemodel');
 models{1}.cur_net_file      = 'unset';
-models{1}.name              = 'VGG_score-SIMPLE';
+models{1}.name              = 'VGG_score-OHEM';
 models{1}.mean_image        = fullfile(pwd, 'models', 'pre_trained_models', 'VGG16', 'mean_image.mat');
-models{1}.conf              = rfcn_config_simple('image_means', models{1}.mean_image, ...
+models{1}.conf              = rfcn_config_ohem('image_means', models{1}.mean_image, ...
                                                  'classes', extra_para.VOCopts.classes, ...
                                                  'max_epoch', 8, 'step_epoch', 7, 'regression', false);
 

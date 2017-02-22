@@ -8,7 +8,7 @@ opts.caffe_version          = 'caffe';
 opts.gpu_id                 = auto_select_gpu;
 active_caffe_mex(opts.gpu_id, opts.caffe_version);
 
-% global parameters
+% global parameters     mAP = [ 30.3223 ]
 extra_para                  = load(fullfile(pwd, 'models', 'pre_trained_models', 'box_param.mat'));
 rng_seed                    = 5;
 per_class_sample            = 3;
@@ -26,7 +26,7 @@ models{1}.name              = 'ResNet101-OHEM';
 models{1}.mean_image        = fullfile(pwd, 'models', 'pre_trained_models', 'ResNet-101L', 'mean_image.mat');
 models{1}.conf              = rfcn_config_ohem('image_means', models{1}.mean_image, ...
                                                'classes', extra_para.VOCopts.classes, ...
-                                               'max_epoch', 9, 'step_epoch', 8, 'regression', true);
+                                               'max_epoch', 8, 'step_epoch', 7, 'regression', true);
 
 % cache name
 opts.cache_name             = ['INIT_', models{1}.name];

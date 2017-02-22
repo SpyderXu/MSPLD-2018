@@ -12,7 +12,6 @@ function startup()
     addpath(genpath(fullfile(curdir, 'functions')));
     addpath(genpath(fullfile(curdir, 'bin')));
     addpath(genpath(fullfile(curdir, 'experiments')));
-    rmpath(fullfile(curdir, 'experiments', 'scripts_rfcn'));
     addpath(genpath(fullfile(curdir, 'imdb')));
 
     mkdir_if_missing(fullfile(curdir, 'datasets'));

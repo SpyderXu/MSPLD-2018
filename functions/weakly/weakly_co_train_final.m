@@ -165,12 +165,11 @@ function save_model_path = weakly_co_train_final(imdb_train, roidb_train, models
     for index = 1:numel(opts.base_select)
 
         base_select = opts.base_select(index);
+        fprintf('\n-------Start Loop %2d ==  ==with base_select : %4.2f-------\n', index, base_select);
+        [A_image_roidb_train] = weakly_generate_pseudo(models, image_roidb_train, opts.boost);
 
         for idx = 1:numel(models)
-            fprintf('\n-------Start Loop %2d == %8s ==with base_select : %4.2f-------\n', index, models{idx}.name, base_select);
-            
-            [A_image_roidb_train] = weakly_generate_pseudo(models, image_roidb_train, opts.boost);
-
+            fprintf('>>>>>>>>For %3d : %s\n', idx, models{idx}.name);
             PER_Select = ceil(Init_Per_Select * base_select);
             %% Filter Unreliable Image with pseudo-boxes
             [B_image_roidb_train] = weakly_filter_roidb(models, A_image_roidb_train, 15, PER_Select);
@@ -211,6 +210,7 @@ end
 function inloop_debug(image_roidb_train, classes, debug_cache_dir, dir_name)
   debug_cache_dir = fullfile(debug_cache_dir, dir_name);
   for iii = 1:numel(image_roidb_train)
+    if (strcmp('flip', image_roidb_train(iii).image_id(end-3:end)) == 1), continue; end
     weakly_debug_final(classes, debug_cache_dir, image_roidb_train(iii));
   end
 end

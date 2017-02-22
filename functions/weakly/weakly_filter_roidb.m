@@ -1,78 +1,90 @@
-function [new_image_roidb_train] = weakly_filter_roidb(test_models, image_roidb_train, smallest, SAVE_TERM)
+function [image_roidb_train] = weakly_filter_roidb(test_models, image_roidb_train, smallest, SAVE_TERM)
 
   classes = test_models{1}.conf.classes;
   num = numel(image_roidb_train); num_class = numel(classes);
-  oks = false(num, 2);            begin_time = tic;
-  %save_ratio = 0.30;
-  multibox_thresh = 0;
+  oks = false(num);               begin_time = tic;
+  %% multibox_thresh = 0;
   %% Filter Multiple Boxes
+  lower_score = cell(num_class,1);
   for idx = 1:num
-    oks(idx, 1) = check_filter_img(image_roidb_train(idx).pseudo_boxes, smallest);
-  end
+    pseudo_boxes = check_filter_img(image_roidb_train(idx).pseudo_boxes, smallest);
+    if (isempty(pseudo_boxes)), continue; end
+    pseudo_boxes = check_save_max(pseudo_boxes);
+    if (isempty(pseudo_boxes)), continue; end
 
-  %% Filter low value pseudo_boxes
-  values = cell(num_class, 1);
-  indexs = cell(num_class, 1);
-  for idx = 1:num
-    if (oks(idx,1) == false), continue; end
-    class = {image_roidb_train(idx).pseudo_boxes.class}; class = cat(1, class{:});
-    score = {image_roidb_train(idx).pseudo_boxes.score}; score = cat(1, score{:});
-    assert (numel(class) == numel(score));
-    assert (all(class <= num_class));
-    for j = 1:numel(class)
-      values{class(j)}(end+1) = score(j);
-      indexs{class(j)}(end+1) = idx;
+    image_roidb_train(idx).pseudo_boxes = pseudo_boxes;
+    oks(idx) = true;
+    for j = 1:numel(pseudo_boxes)
+        class = pseudo_boxes(j).class;
+        score = pseudo_boxes(j).score;
+        lower_score{class}(end+1) = score;
     end
   end
-  oks(:,2) = oks(:,1);
+  image_roidb_train = image_roidb_train(oks);
+
   for cls = 1:num_class
-    scores = values{cls};
-    idxess = indexs{cls};
+    scores = lower_score{cls};
     if (isempty(scores)), continue; end
-    [scorted_score, sorted_idx] = sort(scores, 'descend');
-    if (numel(SAVE_TERM) == 1)
-        save_num = ceil(numel(scores) * SAVE_TERM);
-    else
-        assert (numel(SAVE_TERM) == num_class);
-        save_num = SAVE_TERM(cls);
-    end
-    save_num = min(save_num, numel(scores));
-    %lower_score = min(scorted_score(save_num), 0.4);
-    lower_score = scorted_score(save_num);
-    %idxess = idxess(sorted_idx(end-save_num:end));
-    %oks(idxess, 2) = true;
-    idxess = idxess(scores <= lower_score);
-    oks(idxess, 2) = false;
+    [scorted_score, ~] = sort(scores, 'descend');
+    lower_score{cls} = scorted_score(min(end, SAVE_TERM(cls)));
+  end
+  lower_score = cat(1, lower_score{:});
+
+  oks = false(numel(image_roidb_train), 1);
+  for idx = 1:numel(image_roidb_train)
+    pseudo_boxes = check_filter_score(image_roidb_train(idx).pseudo_boxes, lower_score);
+    if (isempty(pseudo_boxes)), continue; end
+    
+    oks(idx) = true;
+    image_roidb_train(idx).pseudo_boxes = pseudo_boxes;
   end
 
-  new_image_roidb_train = image_roidb_train(oks(:,2));
-  weakly_debug_info( classes, new_image_roidb_train );
+  image_roidb_train = image_roidb_train(oks);
+  weakly_debug_info( classes, image_roidb_train );
 end
 
-function miss_mean = get_mean(missd_count, total_count)
-  total_count(total_count==0) = 1;
-  miss_mean = missd_count ./ total_count;
+function pseudo_boxes = check_filter_score(pseudo_boxes, lower_score)
+  class = {pseudo_boxes.class}; class = cat(1, class{:});
+  score = {pseudo_boxes.score}; score = cat(1, score{:});
+  keep = false(numel(pseudo_boxes), 1);
+  for i = 1:numel(class)
+    if (score(i) >= lower_score( class(i) ))
+      keep(i) = true;
+    end
+  end
+  pseudo_boxes = pseudo_boxes(keep);
+end
+
+function pseudo_boxes = check_save_max(pseudo_boxes)
+  class = {pseudo_boxes.class}; class = cat(1, class{:});
+  score = {pseudo_boxes.score}; score = cat(1, score{:});
+  unique_cls = unique(class);
+
+  keep = [];
+  for j = 1:numel(unique_cls)
+    cls = unique_cls(j);
+    if (sum(class==cls) >= 4), pseudo_boxes=[]; return; end
+    idx = find(class == cls);
+    [~, iii] = max(score(idx));
+    keep(end+1) = idx(iii);
+  end
+  pseudo_boxes = pseudo_boxes(keep);
+
 end
 
 function ok = check_filter_img(pseudo_boxes, smallest)
-  class = {pseudo_boxes.class};
-  class = cat(1, class{:});
-  boxes = {pseudo_boxes.box};
-  boxes = cat(1, boxes{:});
-  if (numel(class) > 3)
-    ok = false;
-  elseif (numel(class) > numel(unique(class))+1)
-    ok = false;
-  else
-    keepB = find(boxes(:,3)-boxes(:,1) >= smallest);
-    keepA = find(boxes(:,4)-boxes(:,2) >= smallest);
-    keep  = intersect(keepA, keepB);
-    if (numel(keep) ~= numel(class))
-      ok = false;
-    else
-      ok = true;
-    end
+  class = {pseudo_boxes.class}; class = cat(1, class{:});
+  boxes = {pseudo_boxes.box};   boxes = cat(1, boxes{:});
+  keepB = find(boxes(:,3)-boxes(:,1) >= smallest);
+  keepA = find(boxes(:,4)-boxes(:,2) >= smallest);
+  keep  = intersect(keepA, keepB);
+  pseudo_boxes = pseudo_boxes(keep);
+  class = class(keep);
+  ok = [];
+  for i = 1:numel(class)
+    if (numel(find(class == class(i))) >=4), return; end
   end
+  ok = pseudo_boxes;
 end
 
 function ok = check_multibox(conf, test_nets, roidb_train, thresh)

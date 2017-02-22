@@ -22,11 +22,11 @@ models{1}.solver_def_file   = fullfile(pwd, 'models', 'rfcn_prototxts', 'GoogleN
 models{1}.test_net_def_file = fullfile(pwd, 'models', 'rfcn_prototxts', 'GoogleNet_OHEM', 'test.prototxt');
 models{1}.net_file          = fullfile(pwd, 'models', 'pre_trained_models', 'GoogleNet', 'bvlc_googlenet.caffemodel');
 models{1}.cur_net_file      = 'unset';
-models{1}.name              = 'ResNet50-OHEM';
+models{1}.name              = 'GoogleNet-OHEM';
 models{1}.mean_image        = fullfile(pwd, 'models', 'pre_trained_models', 'GoogleNet', 'mean_image.mat');
 models{1}.conf              = rfcn_config_ohem('image_means', models{1}.mean_image, ...
                                                'classes', extra_para.VOCopts.classes, ...
-                                               'max_epoch', 9, 'step_epoch', 8, 'regression', true);
+                                               'max_epoch', 8, 'step_epoch', 7, 'regression', true);
 
 % cache name
 opts.cache_name             = ['INIT_', models{1}.name];

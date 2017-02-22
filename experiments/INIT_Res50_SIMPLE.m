@@ -26,7 +26,7 @@ models{1}.name              = 'ResNet50-SIMPLE';
 models{1}.mean_image        = fullfile(pwd, 'models', 'pre_trained_models', 'ResNet-50L', 'mean_image.mat');
 models{1}.conf              = rfcn_config_simple('image_means', models{1}.mean_image, ...
                                                'classes', extra_para.VOCopts.classes, ...
-                                               'max_epoch', 9, 'step_epoch', 8, 'regression', true);
+                                               'max_epoch', 8, 'step_epoch', 7, 'regression', true);
 
 % cache name
 opts.cache_name             = ['INIT_', models{1}.name];

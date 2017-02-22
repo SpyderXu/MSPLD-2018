@@ -1,4 +1,4 @@
-function [new_image_roidb_train] = weakly_generate_co_v(train_model, image_roidb_train, pre_keep, SEL_PER_CLS, gamma)
+function [new_image_roidb_train] = weakly_generate_co_v2(train_model, image_roidb_train, pre_keep, SEL_PER_CLS, gamma)
 
   begin_time = tic;
   caffe.reset_all();
@@ -7,32 +7,21 @@ function [new_image_roidb_train] = weakly_generate_co_v(train_model, image_roidb
   train_solver.net.set_phase('test');
   classes = train_model.conf.classes;
   number = numel(image_roidb_train);
-  Loss = Inf(numel(image_roidb_train), numel(classes));
+  Loss = Inf(numel(image_roidb_train));
 
   for idx = 1:number
     if (rem(idx, 1000) == 0 || idx == number), fprintf('weakly_generate_co_v : handle %4d / %4d image_roidb_train, cost %.2f s\n', idx, number, toc(begin_time)); end
 
-    class = {image_roidb_train(idx).pseudo_boxes.class}; 
-    class = cat(1, class{:}); class = unique(class);
-
     loss = get_loss(train_model.conf, train_solver, image_roidb_train(idx));
-    if ( pre_keep(image_roidb_train(idx).index) )
-      loss = loss - gamma;
-    end
-    for j = 1:numel(class)
-      Loss(idx, class(j)) = loss;
-    end
+    Loss(idx) = loss;
   end
   cur_keep = false(numel(image_roidb_train), 1);
-  for cls = 1:numel(classes)
-    [mx_score, mx_ids] = sort(Loss(:, cls));
-    %MX_IDS(:, cls) = mx_ids;
-    for j = 1:min(number, SEL_PER_CLS(cls))
-      if (mx_score(j) < 1)
-        cur_keep( mx_ids(j) ) = true;
-      else
-        break;
-      end
+  [mx_score, mx_ids] = sort(Loss);
+  for j = 1:min(number, sum(SEL_PER_CLS))
+    if (mx_score(j) < 1)
+      cur_keep( mx_ids(j) ) = true;
+    else
+      break;
     end
   end
   
