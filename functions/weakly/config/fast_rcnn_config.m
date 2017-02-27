@@ -1,4 +1,4 @@
-function conf = rfcn_config_simple(varargin)
+function conf = fast_rcnn_config(varargin)
 % conf = rfcn_config(varargin)
 % --------------------------------------------------------
 % R-FCN implementation
@@ -20,7 +20,7 @@ function conf = rfcn_config_simple(varargin)
     % Images per batch
     ip.addParamValue('ims_per_batch',   2,              @isscalar);
     % Minibatch size, set as -1 if using all the rois
-    ip.addParamValue('batch_size',      256,            @isscalar);
+    ip.addParamValue('batch_size',      128,            @isscalar);
     % Fraction of minibatch that is foreground labeled (class > 0),
     % which is disabled when batch_size = -1
     ip.addParamValue('fg_fraction',     0.25,           @isscalar);
@@ -37,7 +37,7 @@ function conf = rfcn_config_simple(varargin)
     % Vaild training sample (IoU > bbox_thresh) for bounding box regresion
     ip.addParamValue('bbox_thresh',     0.5,            @isscalar);
     % Whether to perform class agnostic bbox regression
-    ip.addParamValue('bbox_class_agnostic', true,       @islogical);
+    ip.addParamValue('bbox_class_agnostic', false,       @islogical);
 
     % class cells, each is a string, denotes the class name
     ip.addParamValue('classes',          {},            @iscell);
@@ -47,7 +47,7 @@ function conf = rfcn_config_simple(varargin)
     ip.addParamValue('step_epoch',        8,            @isscalar);
     ip.addParamValue('regression',     true,            @islogical);
     ip.addParamValue('max_rois_num_in_gpu',    10000,   @isscalar);
-    ip.addParamValue('fast_rcnn',     false,            @islogical);
+    ip.addParamValue('fast_rcnn',      true,            @islogical);
     
     %% testing
     ip.addParamValue('test_scales',     600,            @isscalar);

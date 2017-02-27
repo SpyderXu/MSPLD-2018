@@ -14,7 +14,6 @@ function mAP = weakly_co_test_mAP(confs, imdb, roidb, varargin)
     ip.addParamValue('test_iteration',  1,              @isscalar);
     ip.addParamValue('net_defs',                        @iscell);
     ip.addParamValue('net_models',                      @iscell);
-    ip.addParamValue('net_regressions',                 @iscell);
     ip.addParamValue('cache_name',      '',             @isstr);
     ip.addParamValue('rng_seed',         5,             @isscalar);
     ip.addParamValue('suffix',          '',             @isstr);
@@ -76,7 +75,6 @@ function mAP = weakly_co_test_mAP(confs, imdb, roidb, varargin)
         end             
 
         % determine the maximum number of rois in testing 
-        max_rois_num_in_gpu = 10000;
 
         disp('opts:');
         disp(opts);
@@ -118,7 +116,7 @@ function mAP = weakly_co_test_mAP(confs, imdb, roidb, varargin)
             scores = [];
             for jj = 1:numel(caffe_net)
                 pre_boxes = d.boxes(~d.gt, :);
-                [cboxes, cscores] = weakly_im_detect(confs{jj}, caffe_net{jj}, im, pre_boxes, max_rois_num_in_gpu);
+                [cboxes, cscores] = weakly_im_detect(confs{jj}, caffe_net{jj}, im, pre_boxes, confs{jj}.max_rois_num_in_gpu);
 				if (opts.test_iteration == 2)
 					[~, mx_id] = max(cscores, [], 2);
 					mx_id = (mx_id-1)*4;
@@ -127,7 +125,7 @@ function mAP = weakly_co_test_mAP(confs, imdb, roidb, varargin)
 						for coor = 1:4, add_boxes(box_id, coor) = cboxes(box_id, mx_id(box_id)+coor); end
 					end
 					pre_boxes = (pre_boxes+add_boxes)./2;
-					[cboxes, cscores] = weakly_im_detect(confs{jj}, caffe_net{jj}, im, pre_boxes, max_rois_num_in_gpu);
+					[cboxes, cscores] = weakly_im_detect(confs{jj}, caffe_net{jj}, im, pre_boxes, confs{jj}.max_rois_num_in_gpu);
 				else
 					assert(opts.test_iteration == 1);
 				end

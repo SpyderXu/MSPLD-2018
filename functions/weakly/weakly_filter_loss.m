@@ -1,4 +1,4 @@
-function [new_image_roidb_train] = weakly_generate_co_v(train_model, image_roidb_train, pre_keep, SEL_PER_CLS, gamma)
+function [new_image_roidb_train] = weakly_filter_loss(train_model, image_roidb_train, pre_keep, save_ratio, gamma)
 
   begin_time = tic;
   caffe.reset_all();
@@ -10,7 +10,7 @@ function [new_image_roidb_train] = weakly_generate_co_v(train_model, image_roidb
   Loss = Inf(numel(image_roidb_train), numel(classes));
 
   for idx = 1:number
-    if (rem(idx, 1000) == 0 || idx == number), fprintf('weakly_generate_co_v : handle %4d / %4d image_roidb_train, cost %.2f s\n', idx, number, toc(begin_time)); end
+    if (rem(idx, 1000) == 0 || idx == number), fprintf('weakly_filter_loss : handle %4d / %4d image_roidb_train, cost %.2f s\n', idx, number, toc(begin_time)); end
 
     class = {image_roidb_train(idx).pseudo_boxes.class}; 
     class = cat(1, class{:}); class = unique(class);
@@ -25,20 +25,16 @@ function [new_image_roidb_train] = weakly_generate_co_v(train_model, image_roidb
   end
   cur_keep = false(numel(image_roidb_train), 1);
   for cls = 1:numel(classes)
-    [mx_score, mx_ids] = sort(Loss(:, cls));
-    %MX_IDS(:, cls) = mx_ids;
-    for j = 1:min(number, SEL_PER_CLS(cls))
-      if (mx_score(j) < 1)
-        cur_keep( mx_ids(j) ) = true;
-      else
-        break;
-      end
-    end
+    valid = find(Loss(:, cls) <= 100); % avoid inf
+    if (isempty(valid)), continue; end
+    [mx_score, mx_ids] = sort(Loss(valid, cls));
+    loss_thresh = mx_score(ceil(numel(valid)*save_ratio));
+    cur_keep( valid( mx_ids( mx_score <= loss_thresh) ) ) = true;
   end
   
   new_image_roidb_train = image_roidb_train(cur_keep);
-  weakly_debug_info( classes, new_image_roidb_train,  Loss(cur_keep, :));
-  fprintf('weakly_generate_co_v %4d -> %4d, cost %.1f s\n', number, numel(new_image_roidb_train), toc(begin_time));
+  weakly_debug_info( classes, new_image_roidb_train, Loss(cur_keep, :));
+  fprintf('weakly_filter_loss %4d -> %4d, cost %.1f s\n', number, numel(new_image_roidb_train), toc(begin_time));
   caffe.reset_all();
 end
 

@@ -15,7 +15,6 @@ function [image_roidb_train] = weakly_generate_pseudo(test_models, image_roidb_t
     end
     %all_boxes  = cell(num_roidb);
     all_scores = cell(num_roidb);
-    max_rois_num_in_gpu = 10000;
     for inet = 1:num_nets
         caffe.reset_all();
         test_net = caffe.Net( test_models(inet).test_net_def_file , 'test' );
@@ -24,8 +23,8 @@ function [image_roidb_train] = weakly_generate_pseudo(test_models, image_roidb_t
 
         for index = 1:num_roidb
             if (rem(index, 1000) == 0 || index == num_roidb), fprintf('Handle %s %4d / %4d image_roidb_train, cost : %.1f s\n', test_models(inet).name, index, num_roidb, toc(begin_time)); end
-            %[cur_boxes, cur_scores] = w_im_detect(conf, test_net, imread(image_roidb_train(index).image_path), image_roidb_train(index).boxes, max_rois_num_in_gpu, boost);
-            [~, cur_scores] = w_im_detect(conf, test_net, imread(image_roidb_train(index).image_path), image_roidb_train(index).boxes, max_rois_num_in_gpu, boost);
+            %[cur_boxes, cur_scores] = w_im_detect(conf, test_net, imread(image_roidb_train(index).image_path), image_roidb_train(index).boxes, boost);
+            [~, cur_scores] = w_im_detect(conf, test_net, imread(image_roidb_train(index).image_path), image_roidb_train(index).boxes, boost);
             %if (isempty(all_boxes{index}) && isempty(all_scores{index}))
             if (isempty(all_scores{index}))
             %    all_boxes{index}  = cur_boxes ./ num_nets;
@@ -46,7 +45,7 @@ function [image_roidb_train] = weakly_generate_pseudo(test_models, image_roidb_t
         assert (check_reverse(image_roidb_train(index), image_roidb_train(reverse_idx)));
 
         %final_boxes = (all_boxes{index}  + reverse_box(all_boxes{reverse_idx}, image_roidb_train(reverse_idx).im_size) ) / 2;
-        final_boxes = image_roidb_train(index).box;
+        final_boxes = image_roidb_train(index).boxes;
         final_score = (all_scores{index} + all_scores{reverse_idx} ) / 2;
 
         pseudo_boxes = generate_pseudo(final_boxes, final_score, num_classes, thresh_hold);
@@ -94,9 +93,9 @@ function pos_structs = generate_pseudo(final_boxes, final_score, num_classes, th
   if (isempty(pos_structs) == false), pos_structs = cat(1, pos_structs{:}); end
 end
 
-function [boxes, scores] = w_im_detect(conf, test_net, image, in_boxes, max_rois_num_in_gpu, boost)
+function [boxes, scores] = w_im_detect(conf, test_net, image, in_boxes, boost)
 
-  [boxes, scores] = weakly_im_detect(conf, test_net, image, in_boxes, max_rois_num_in_gpu);
+  [boxes, scores] = weakly_im_detect(conf, test_net, image, in_boxes, conf.max_rois_num_in_gpu);
 
   if (boost)
     [~, mx_id] = max(scores, [], 2);
@@ -106,7 +105,7 @@ function [boxes, scores] = w_im_detect(conf, test_net, image, in_boxes, max_rois
         for coor = 1:4, add_boxes(box_id, coor) = boxes(box_id, mx_id(box_id)+coor); end
     end
     in_boxes = (in_boxes + add_boxes) ./ 2;
-    [boxes, scores] = weakly_im_detect(conf, test_net, image, in_boxes, max_rois_num_in_gpu);
+    [boxes, scores] = weakly_im_detect(conf, test_net, image, in_boxes, conf.max_rois_num_in_gpu);
   end
 
 end

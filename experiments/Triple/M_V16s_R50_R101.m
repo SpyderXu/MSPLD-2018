@@ -8,7 +8,7 @@ opts.caffe_version          = 'caffe';
 opts.gpu_id                 = auto_select_gpu;
 active_caffe_mex(opts.gpu_id, opts.caffe_version);
 
-% global parameters
+% global parameters  33.50
 extra_para                  = load(fullfile(pwd, 'models', 'pre_trained_models', 'box_param.mat'));
 rng_seed                    = 5;
 per_class_sample            = 3;
@@ -17,7 +17,7 @@ use_flipped                 = true;
 gamma                       = 0.0;
 base_select                 = zeros(0,1);
 % model
-models                      = cell(1,1);
+models                      = cell(3,1);
 models{1}.solver_def_file   = fullfile(pwd, 'models', 'rfcn_prototxts', 'VGG16_score', 'solver_lr1_3.prototxt');
 models{1}.test_net_def_file = fullfile(pwd, 'models', 'rfcn_prototxts', 'VGG16_score', 'test.prototxt');
 models{1}.net_file          = fullfile(pwd, 'models', 'pre_trained_models', 'VGG16', 'vgg16.caffemodel');
@@ -26,10 +26,30 @@ models{1}.name              = 'VGG_score-SIMPLE';
 models{1}.mean_image        = fullfile(pwd, 'models', 'pre_trained_models', 'VGG16', 'mean_image.mat');
 models{1}.conf              = rfcn_config_simple('image_means', models{1}.mean_image, ...
                                                  'classes', extra_para.VOCopts.classes, ...
-                                                 'max_epoch', 8, 'step_epoch', 7, 'regression', false);
+                                                 'max_epoch', 12, 'step_epoch', 10, 'regression', false);
+
+models{2}.solver_def_file   = fullfile(pwd, 'models', 'rfcn_prototxts', 'ResNet-50L_OHEM_res3a', 'solver_lr1_3.prototxt');
+models{2}.test_net_def_file = fullfile(pwd, 'models', 'rfcn_prototxts', 'ResNet-50L_OHEM_res3a', 'test.prototxt');
+models{2}.net_file          = fullfile(pwd, 'models', 'pre_trained_models', 'ResNet-50L', 'ResNet-50-model.caffemodel');
+models{2}.cur_net_file      = 'unset';
+models{2}.name              = 'ResNet50-OHEM';
+models{2}.mean_image        = fullfile(pwd, 'models', 'pre_trained_models', 'ResNet-50L', 'mean_image.mat');
+models{2}.conf              = rfcn_config_ohem('image_means', models{1}.mean_image, ...
+                                               'classes', extra_para.VOCopts.classes, ...
+                                               'max_epoch', 9, 'step_epoch', 8, 'regression', true);
+
+models{3}.solver_def_file   = fullfile(pwd, 'models', 'rfcn_prototxts', 'ResNet-101L_OHEM_res3a', 'solver_lr1_3.prototxt');
+models{3}.test_net_def_file = fullfile(pwd, 'models', 'rfcn_prototxts', 'ResNet-101L_OHEM_res3a', 'test.prototxt');
+models{3}.net_file          = fullfile(pwd, 'models', 'pre_trained_models', 'ResNet-101L', 'ResNet-101-model.caffemodel');
+models{3}.cur_net_file      = 'unset';
+models{3}.name              = 'ResNet101-OHEM';
+models{3}.mean_image        = fullfile(pwd, 'models', 'pre_trained_models', 'ResNet-101L', 'mean_image.mat');
+models{3}.conf              = rfcn_config_ohem('image_means', models{1}.mean_image, ...
+                                               'classes', extra_para.VOCopts.classes, ...
+                                               'max_epoch', 9, 'step_epoch', 8, 'regression', true);
 
 % cache name
-opts.cache_name             = ['INIT_', models{1}.name];
+opts.cache_name             = ['MM_', models{1}.name, models{2}.name, models{3}.name];
 box_param.bbox_means        = extra_para.bbox_means;
 box_param.bbox_stds         = extra_para.bbox_stds;
 opts.cache_name             = [opts.cache_name, '_per-', num2str(mean(per_class_sample)), '_seed-', num2str(rng_seed)];
@@ -58,39 +78,10 @@ fprintf('-------------------- TESTING --------------------\n');
 assert(numel(opts.rfcn_model) == numel(models));
 mAPs                        = cell(numel(models), 1);
 test_time                   = tic;
-mAPs                        = weakly_co_test_mAP({models{1}.conf}, dataset.imdb_test, dataset.roidb_test, ...
-                                'net_defs',         {models{1}.test_net_def_file}, ...
-                                'net_models',       {opts.rfcn_model{1}}, ...
+mAPs                        = weakly_test_mAP_v2({models{1}.conf, models{2}.conf, models{3}.conf}, dataset.imdb_test, dataset.roidb_test, ...
+                                'net_defs',         {models{1}.test_net_def_file, models{2}.test_net_def_file, models{3}.test_net_def_file}, ...
+                                'net_models',       opts.rfcn_model, ...
                                 'cache_name',       opts.cache_name, ...
                                 'log_prefix',       [models{1}.name, '_final_'], ...
                                 'rng_seed',         rng_seed, ...
                                 'ignore_cache',     true);
-loc_dataset                 = Dataset.voc2007_trainval_ss([], 'train', false);
-Corloc                      = weakly_co_test_Cor({models{1}.conf}, loc_dataset.imdb_train{1}, loc_dataset.roidb_train{1}, ...
-                                'net_defs',         {models{1}.test_net_def_file}, ...
-                                'net_models',       {opts.rfcn_model{1}}, ...
-                                'cache_name',       opts.cache_name, ...
-                                'rng_seed',         rng_seed, ...
-                                'ignore_cache',     true);
-fprintf('Training Cost : %.1f s, Test Cost : %.1f s, mAP : %.2f, Corloc : %.2f\n', train_time, test_time, mAPs, Corloc);
-
-fprintf('----------------------------------All Test-----------------------------\n');
-imdbs_name          = cell2mat(cellfun(@(x) x.name, dataset.imdb_train,'UniformOutput', false));
-all_test_time       = tic;
-rfcn_model          = cell(models{1}.conf.max_epoch, 1);
-for idx = 1:models{1}.conf.max_epoch
-    rfcn_model{idx} = fullfile(pwd, 'output', 'weakly_cachedir' , opts.cache_name, imdbs_name, [models{1}.name, '_Loop_0_epoch_', num2str(idx), '.caffemodel']);
-	assert(exist(rfcn_model{idx}, 'file') ~= 0, 'not found trained model');
-end
-
-allAPs = zeros(models{1}.conf.max_epoch, 1);
-for idx = 1:models{1}.conf.max_epoch
-allAPs(idx)                 = weakly_co_test_mAP({models{1}.conf}, dataset.imdb_test, dataset.roidb_test, ...
-                                'net_defs',         {models{1}.test_net_def_file}, ...
-                                'net_models',       {rfcn_model{idx}}, ...
-                                'cache_name',       opts.cache_name, ...
-                                'log_prefix',       [models{1}.name, '_epoch_', num2str(idx)], ...
-                                'rng_seed',         rng_seed, ...
-                                'ignore_cache',     true);
-
-end

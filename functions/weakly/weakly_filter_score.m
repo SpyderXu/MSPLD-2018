@@ -1,15 +1,14 @@
-function [image_roidb_train] = weakly_filter_roidb(test_models, image_roidb_train, smallest, SAVE_TERM)
+function [image_roidb_train] = weakly_filter_score(test_models, image_roidb_train, SAVE_TERM)
 
   classes = test_models{1}.conf.classes;
   num = numel(image_roidb_train); num_class = numel(classes);
   oks = false(num);               begin_time = tic;
+  SAVE_TERM = ceil(SAVE_TERM);
   %% multibox_thresh = 0;
   %% Filter Multiple Boxes
   lower_score = cell(num_class,1);
   for idx = 1:num
-    pseudo_boxes = check_filter_img(image_roidb_train(idx).pseudo_boxes, smallest);
-    if (isempty(pseudo_boxes)), continue; end
-    pseudo_boxes = check_save_max(pseudo_boxes);
+    pseudo_boxes = check_filter_img(image_roidb_train(idx).pseudo_boxes);
     if (isempty(pseudo_boxes)), continue; end
 
     image_roidb_train(idx).pseudo_boxes = pseudo_boxes;
@@ -20,7 +19,9 @@ function [image_roidb_train] = weakly_filter_roidb(test_models, image_roidb_trai
         lower_score{class}(end+1) = score;
     end
   end
+
   image_roidb_train = image_roidb_train(oks);
+  fprintf('weakly_filter_roidb after filter left %4d images\n', numel(image_roidb_train));
 
   for cls = 1:num_class
     scores = lower_score{cls};
@@ -55,34 +56,12 @@ function pseudo_boxes = check_filter_score(pseudo_boxes, lower_score)
   pseudo_boxes = pseudo_boxes(keep);
 end
 
-function pseudo_boxes = check_save_max(pseudo_boxes)
+function ok = check_filter_img(pseudo_boxes)
   class = {pseudo_boxes.class}; class = cat(1, class{:});
-  score = {pseudo_boxes.score}; score = cat(1, score{:});
-  unique_cls = unique(class);
-
-  keep = [];
-  for j = 1:numel(unique_cls)
-    cls = unique_cls(j);
-    if (sum(class==cls) >= 4), pseudo_boxes=[]; return; end
-    idx = find(class == cls);
-    [~, iii] = max(score(idx));
-    keep(end+1) = idx(iii);
-  end
-  pseudo_boxes = pseudo_boxes(keep);
-
-end
-
-function ok = check_filter_img(pseudo_boxes, smallest)
-  class = {pseudo_boxes.class}; class = cat(1, class{:});
-  boxes = {pseudo_boxes.box};   boxes = cat(1, boxes{:});
-  keepB = find(boxes(:,3)-boxes(:,1) >= smallest);
-  keepA = find(boxes(:,4)-boxes(:,2) >= smallest);
-  keep  = intersect(keepA, keepB);
-  pseudo_boxes = pseudo_boxes(keep);
-  class = class(keep);
   ok = [];
+  if (numel(unique(class)) >= 5), return; end
   for i = 1:numel(class)
-    if (numel(find(class == class(i))) >=4), return; end
+    if (numel(find(class == class(i))) >= 4), return; end
   end
   ok = pseudo_boxes;
 end
@@ -129,4 +108,3 @@ function boxes = multibox(boxes)
   ANS = [ANS;CUR];
   boxes = ANS;
 end
-

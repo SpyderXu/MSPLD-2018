@@ -10,14 +10,16 @@ active_caffe_mex(opts.gpu_id, opts.caffe_version);
 
 % global parameters
 extra_para                  = load(fullfile(pwd, 'models', 'pre_trained_models', 'box_param.mat'));
+classes                     = extra_para.VOCopts.classes;
 rng_seed                    = 5;
 per_class_sample            = 3;
 print_result                = true;
 use_flipped                 = true;
 gamma                       = 0.2;
-base_select                 = [2, 3.4];
+base_select                 = [2, 3.5];
 % model
-models                      = cell(2,1);
+models                      = cell(3,1);
+box_param                   = cell(3,1);
 models{1}.solver_def_file   = fullfile(pwd, 'models', 'rfcn_prototxts', 'ResNet-50L_OHEM_res3a', 'solver_lr1_3.prototxt');
 models{1}.test_net_def_file = fullfile(pwd, 'models', 'rfcn_prototxts', 'ResNet-50L_OHEM_res3a', 'test.prototxt');
 models{1}.net_file          = fullfile(pwd, 'models', 'pre_trained_models', 'ResNet-50L', 'ResNet-50-model.caffemodel');
@@ -25,27 +27,35 @@ models{1}.cur_net_file      = 'unset';
 models{1}.name              = 'ResNet50-OHEM';
 models{1}.mean_image        = fullfile(pwd, 'models', 'pre_trained_models', 'ResNet-50L', 'mean_image.mat');
 models{1}.conf              = rfcn_config_ohem('image_means', models{1}.mean_image, ...
-                                               'classes', extra_para.VOCopts.classes, ...
+                                               'classes', classes, ...
                                                'max_epoch', 8, 'step_epoch', 7, ...
                                                'regression', true);
-assert(exist(models{1}.net_file, 'file') ~= 0, [models{1}.name ' Pretrain Model Not Found']);
+box_param{1}                = load(fullfile(pwd, 'models', 'pre_trained_models', 'box_param.mat'));
 
-models{2}.solver_def_file   = fullfile(pwd, 'models', 'rfcn_prototxts', 'GoogleNet_OHEM', 'solver_lr1_3.prototxt');
-models{2}.test_net_def_file = fullfile(pwd, 'models', 'rfcn_prototxts', 'GoogleNet_OHEM', 'test.prototxt');
-models{2}.net_file          = fullfile(pwd, 'models', 'pre_trained_models', 'GoogleNet', 'bvlc_googlenet.caffemodel');
+models{2}.solver_def_file   = fullfile(pwd, 'models', 'rfcn_prototxts', 'ResNet-101L_res3a', 'solver_lr1_3.prototxt');
+models{2}.test_net_def_file = fullfile(pwd, 'models', 'rfcn_prototxts', 'ResNet-101L_res3a', 'test.prototxt');
+models{2}.net_file          = fullfile(pwd, 'models', 'pre_trained_models', 'ResNet-101L', 'ResNet-101-model.caffemodel');
 models{2}.cur_net_file      = 'unset';
-models{2}.name              = 'GoogleNet-OHEM';
-models{2}.mean_image        = fullfile(pwd, 'models', 'pre_trained_models', 'ResNet-50L', 'mean_image.mat');
-models{2}.conf              = rfcn_config_ohem('image_means', models{2}.mean_image, ...
-                                               'classes', extra_para.VOCopts.classes, ...
-                                               'max_epoch', 8, 'step_epoch', 7, ...
-                                               'regression', true);
-assert(exist(models{2}.net_file, 'file') ~= 0, [models{2}.name ' Pretrain Model Not Found']);
+models{2}.name              = 'ResNet101-SIMPLE';
+models{2}.mean_image        = fullfile(pwd, 'models', 'pre_trained_models', 'ResNet-101L', 'mean_image.mat');
+models{2}.conf              = rfcn_config_simple('image_means', models{2}.mean_image, ...
+                                               'classes', classes, ...
+                                               'max_epoch', 8, 'step_epoch', 7, 'regression', true);
+box_param{2}                = load(fullfile(pwd, 'models', 'pre_trained_models', 'box_param.mat'));
+
+models{3}.solver_def_file   = fullfile(pwd, 'models', 'fast_rcnn_prototxts', 'vgg_16layers_conv3_1', 'solver_lr1_3.prototxt');
+models{3}.test_net_def_file = fullfile(pwd, 'models', 'fast_rcnn_prototxts', 'vgg_16layers_conv3_1', 'test.prototxt');
+models{3}.net_file          = fullfile(pwd, 'models', 'pre_trained_models', 'VGG16', 'vgg16.caffemodel');
+models{3}.cur_net_file      = 'unset';
+models{3}.name              = 'VGG16-Fast';
+models{3}.mean_image        = fullfile(pwd, 'models', 'pre_trained_models', 'VGG16', 'mean_image.mat');
+models{3}.conf              = fast_rcnn_config('image_means', models{3}.mean_image, ...
+                                                 'classes', extra_para.VOCopts.classes, ...
+                                                 'max_epoch', 9, 'step_epoch', 8, 'regression', true);
+box_param{3}                = load(fullfile(pwd, 'models', 'pre_trained_models', 'fast_box_param.mat'));
 
 % cache name
-opts.cache_name             = ['EWSD_Co_', models{1}.name, '_', models{2}.name];
-box_param.bbox_means        = extra_para.bbox_means;
-box_param.bbox_stds         = extra_para.bbox_stds;
+opts.cache_name             = ['EWSD_Tr_', models{1}.name, '_', models{2}.name, '_', models{3}.name];
 opts.cache_name             = [opts.cache_name, '_per-', num2str(mean(per_class_sample)), '_seed-', num2str(rng_seed)];
 % train/test data
 fprintf('Loading dataset...');
@@ -56,7 +66,7 @@ fprintf('Done.\n');
 
 fprintf('-------------------- TRAINING --------------------\n');
 train_time                  = tic;
-opts.rfcn_model             = weakly_co_train_final(dataset.imdb_train, dataset.roidb_train, models, ...
+opts.rfcn_model             = weakly_co_train_v2(dataset.imdb_train, dataset.roidb_train, models, ...
                                 'cache_name',       opts.cache_name, ...
                                 'per_class_sample', per_class_sample, ...
                                 'base_select',      base_select, ...
@@ -86,7 +96,7 @@ for idx = 1:numel(models)
     net_models{idx}         = opts.rfcn_model{idx};
     net_confs{idx}          = models{idx}.conf;
 end
-mAPs{end+1}                 = weakly_co_test_mAP(net_confs, dataset.imdb_test, dataset.roidb_test, ...
+mAPs{numel(models)+1}       = weakly_test_mAP_v2(net_confs, dataset.imdb_test, dataset.roidb_test, ...
                                 'net_defs',         net_defs, ...
                                 'net_models',       net_models, ...
                                 'cache_name',       opts.cache_name,...
@@ -94,7 +104,7 @@ mAPs{end+1}                 = weakly_co_test_mAP(net_confs, dataset.imdb_test, d
                                 'ignore_cache',     true);
 test_time                   = toc(test_time);
 loc_dataset                 = Dataset.voc2007_trainval_ss([], 'train', false);
-Corloc                      = weakly_co_test_Cor(net_confs, loc_dataset.imdb_train{1}, loc_dataset.roidb_train{1}, ...
+Corloc                      = weakly_test_Cor_v2(net_confs, loc_dataset.imdb_train{1}, loc_dataset.roidb_train{1}, ...
                                 'net_defs',         net_defs, ...
                                 'net_models',       net_models, ...
                                 'cache_name',       opts.cache_name,...
@@ -102,7 +112,7 @@ Corloc                      = weakly_co_test_Cor(net_confs, loc_dataset.imdb_tra
 for idx = 1:numel(models)
     fprintf('%s mAP : %.3f\n', models{idx}.name, mAPs{idx});
 end
-fprintf('Training Cost : %.1f s, Test Cost : %.1f s, mAP : %.2f, Corloc : %.2f\n', train_time, test_time, mAPs{end}, Corloc);
+fprintf('Training Cost : %.1f s, Test Cost : %.1f s, mAP : %.2f, Corloc : %.2f\n', train_time, test_time, mAPs{numel(models)+1}, Corloc);
 
 fprintf('----------------------------------All Test-----------------------------\n');
 imdbs_name          = cell2mat(cellfun(@(x) x.name, dataset.imdb_train,'UniformOutput', false));
@@ -119,7 +129,7 @@ for index = 1:size(rfcn_model, 2)
   merge_model_def = cell(numel(models), 1);
   weigh_model_def = cell(numel(models), 1);
   for idx = 1:numel(models)
-    S_mAPs(idx, index) = weakly_co_test_mAP(net_confs(idx), dataset.imdb_test, dataset.roidb_test, ...
+    S_mAPs(idx, index) = weakly_test_mAP_v2(net_confs(idx), dataset.imdb_test, dataset.roidb_test, ...
                              'net_defs',         {models{idx}.test_net_def_file}, ...
                              'net_models',       rfcn_model(idx,index), ...
                              'test_iteration',   1, ...
@@ -129,7 +139,7 @@ for index = 1:size(rfcn_model, 2)
     merge_model_def{idx} = models{idx}.test_net_def_file;
     weigh_model_def{idx} = rfcn_model{idx,index};
   end
-  S_mAPs(end, index)   = weakly_co_test_mAP(net_confs, dataset.imdb_test, dataset.roidb_test, ...
+  S_mAPs(end, index)   = weakly_test_mAP_v2(net_confs, dataset.imdb_test, dataset.roidb_test, ...
                              'net_defs',         merge_model_def, ...
                              'net_models',       weigh_model_def, ...
                              'test_iteration',   1, ...

@@ -46,6 +46,8 @@ function conf = rfcn_config_ohem(varargin)
     ip.addParamValue('max_epoch',       9,              @isscalar);
     ip.addParamValue('step_epoch',      8,              @isscalar);
     ip.addParamValue('regression',     true,            @islogical);
+    ip.addParamValue('max_rois_num_in_gpu',    10000,   @isscalar);
+    ip.addParamValue('fast_rcnn',     false,            @islogical);
     
     %% testing
     ip.addParamValue('test_scales',     600,            @isscalar);

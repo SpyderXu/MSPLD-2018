@@ -505,7 +505,7 @@ layer {
 }
 layer {
    bottom: "rois"
-   bottom: "per_roi_cls_loss"
+   bottom: "per_roi_loss_cls"
    bottom: "labels"
    top: "labels_ohem"
    name: "annotator_detector"

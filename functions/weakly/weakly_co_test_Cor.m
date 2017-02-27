@@ -80,7 +80,6 @@ function mean_loc = weakly_co_test_Cor(confs, imdb, roidb, varargin)
         end             
 
         % determine the maximum number of rois in testing 
-        max_rois_num_in_gpu = 10000;
 
         disp('opts:');
         disp(opts);
@@ -117,7 +116,7 @@ function mean_loc = weakly_co_test_Cor(confs, imdb, roidb, varargin)
             scores = [];
             for jj = 1:numel(caffe_net)
                 pre_boxes = d.boxes(~d.gt, :);
-                [cboxes, cscores] = weakly_im_detect(confs{jj}, caffe_net{jj}, im, pre_boxes, max_rois_num_in_gpu);
+                [cboxes, cscores] = weakly_im_detect(confs{jj}, caffe_net{jj}, im, pre_boxes, confs{jj}.max_rois_num_in_gpu);
                 if (jj == 1)
                     boxes  = cboxes;
                     scores = cscores;

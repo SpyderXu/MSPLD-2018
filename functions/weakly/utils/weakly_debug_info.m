@@ -37,7 +37,9 @@ function weakly_debug_info(classes, image_roidb_train, losses)
             hight_score(cls) = max(hight_score(cls), dtscore(x));
         end
         lower_loss(cls) = min(lower_loss(cls), losses(j, cls));
-        hight_loss(cls) = max(hight_loss(cls), losses(j, cls));
+        if (losses(j, cls) <= 10) % avoid inf
+            hight_loss(cls) = max(hight_loss(cls), losses(j, cls));
+        end
       end
       image_label = image_roidb_train(j).image_label;
       det_label = {image_roidb_train(j).pseudo_boxes.class};
@@ -47,7 +49,7 @@ function weakly_debug_info(classes, image_roidb_train, losses)
     end
 
     for Cls = 1:num_class
-    fprintf('--[%02d][%12s] B=[precision: %4d/%4d = %.3f ; recall: %4d/%4d = %.3f] I=[%3d/%3d = %.3f] S=[%.3f, %.3f] L=[%.3f, %.3f]\n', Cls, classes{Cls}, ...
+    fprintf('--[%02d][%12s] B=[precision: %4d/%4d = %.3f ; recall: %4d/%4d = %.3f] I=[%4d/%4d = %.3f] S=[%.3f, %.3f] L=[%.3f, %.3f]\n', Cls, classes{Cls}, ...
                  truee_boxes(Cls), todet_boxes(Cls), divide( truee_boxes(Cls), todet_boxes(Cls) ), ...
                  cordt_boxes(Cls), total_boxes(Cls), divide( cordt_boxes(Cls), total_boxes(Cls) ), ...
                  corrt_image(Cls), total_image(Cls), divide( corrt_image(Cls), total_image(Cls) ), ...

@@ -14,7 +14,7 @@ function model_path = weakly_supervised_score(roidb_train, solver_file, model_fi
   shuffled_inds = [];
   train_results = [];
   max_iter = caffe_solver.max_iter();
-  fprintf('********** %6s Training : total[%5d] max_iter[%6d] *************\n', prefix, total_num, max_iter);
+  fprintf('********** %6s Score Training : total[%5d] max_iter[%6d] *************\n', prefix, total_num, max_iter);
   caffe_solver.net.set_phase('train');
 
   while (caffe_solver.iter() < max_iter)
