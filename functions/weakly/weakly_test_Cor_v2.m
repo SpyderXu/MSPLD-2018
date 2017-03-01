@@ -105,10 +105,10 @@ function mean_loc = weakly_test_Cor_v2(confs, imdb, roidb, varargin)
             cls_boxes = boxes(:, (1+(j-1)*4):((j)*4));
             cls_scores = scores(:, j);
             temp = cat(2, single(cls_boxes), single(cls_scores)) / numel(caffe_net);
-            if (isempty(aboxes{j}{i}))
-              all_boxes{i}{j} = temp;
+            if (isempty(all_boxes{i,j}))
+              all_boxes{i,j} = temp;
             else
-              all_boxes{i}{j} = aboxes{i}{j} + temp;
+              all_boxes{i,j} = all_boxes{i,j} + temp;
             end
         end
       end
