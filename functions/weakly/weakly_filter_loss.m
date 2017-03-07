@@ -16,8 +16,8 @@ function [new_image_roidb_train] = weakly_filter_loss(train_model, image_roidb_t
     class = cat(1, class{:}); class = unique(class);
 
     loss = get_loss(train_model.conf, train_solver, image_roidb_train(idx));
-    if ( pre_keep(image_roidb_train(idx).index) )
-      loss = loss - gamma;
+    if ( pre_keep(image_roidb_train(idx).index) > 0 )
+      loss = loss - gamma * pre_keep(image_roidb_train(idx).index);
     end
     for j = 1:numel(class)
       Loss(idx, class(j)) = loss;

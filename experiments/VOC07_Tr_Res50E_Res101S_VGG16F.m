@@ -17,7 +17,7 @@ print_result                = true;
 use_flipped                 = true;
 gamma                       = 0.2;
 %base_select                 = [2, 3.5];
-base_select                 = [3, 3, 3, 3];
+base_select                 = [3, 4, 5, 6];
 % model
 models                      = cell(3,1);
 box_param                   = cell(3,1);
@@ -29,7 +29,7 @@ models{1}.name              = 'ResNet50-OHEM';
 models{1}.mean_image        = fullfile(pwd, 'models', 'pre_trained_models', 'ResNet-50L', 'mean_image.mat');
 models{1}.conf              = rfcn_config_ohem('image_means', models{1}.mean_image, ...
                                                'classes', classes, ...
-                                               'max_epoch', 8, 'step_epoch', 7, ...
+                                               'max_epoch', 9, 'step_epoch', 8, ...
                                                'regression', true);
 box_param{1}                = load(fullfile(pwd, 'models', 'pre_trained_models', 'box_param.mat'));
 
@@ -41,7 +41,7 @@ models{2}.name              = 'ResNet101-SIMPLE';
 models{2}.mean_image        = fullfile(pwd, 'models', 'pre_trained_models', 'ResNet-101L', 'mean_image.mat');
 models{2}.conf              = rfcn_config_simple('image_means', models{2}.mean_image, ...
                                                'classes', classes, ...
-                                               'max_epoch', 8, 'step_epoch', 7, 'regression', true);
+                                               'max_epoch', 9, 'step_epoch', 8, 'regression', true);
 box_param{2}                = load(fullfile(pwd, 'models', 'pre_trained_models', 'box_param.mat'));
 
 models{3}.solver_def_file   = fullfile(pwd, 'models', 'fast_rcnn_prototxts', 'vgg_16layers_conv3_1', 'solver_lr1_3.prototxt');

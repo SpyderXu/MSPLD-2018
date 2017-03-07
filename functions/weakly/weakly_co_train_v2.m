@@ -18,7 +18,7 @@ function save_model_path = weakly_co_train_v2(imdb_train, roidb_train, models, v
     ip.addParamValue('base_select',       [1],          @isvector); 
     ip.addParamValue('rng_seed',            5,          @isscalar); 
     ip.addParamValue('gamma',             0.3,          @isscalar); 
-    ip.addParamValue('debug',            true,          @islogical); 
+    ip.addParamValue('debug',           false,          @islogical); 
     ip.addParamValue('use_flipped',      true,          @islogical); 
     ip.addParamValue('boost',           false,          @islogical); 
     ip.addParamValue('cache_name',        'un-define',  @isstr);
@@ -119,10 +119,11 @@ function save_model_path = weakly_co_train_v2(imdb_train, roidb_train, models, v
         models{idx}.cur_net_file = previous_model{idx};
     end
 
-    pre_keep = false(numel(unsupervise_ids), 1);
+    %pre_keep = false(numel(unsupervise_ids), 1);
+    pre_keeps = zeros(numel(unsupervise_ids), numel(models));
 
-    Init_Per_Select = [40, 12, 10, 10, 20, 10, 50, 25, 15, 10,...
-                       20, 15, 20, 30, 15, 15, 15, 20, 40, 35];
+    Init_Per_Select = [40, 12, 10, 20, 20, 10, 50, 25, 15, 10,...
+                       20, 15, 15, 30, 15, 15, 15, 20, 40, 35];
 %% Start Training
     for index = 1:numel(opts.base_select)
 
@@ -137,13 +138,15 @@ function save_model_path = weakly_co_train_v2(imdb_train, roidb_train, models, v
             [B_image_roidb_train] = weakly_clean_data(classes, A_image_roidb_train, 15);
             [B_image_roidb_train] = weakly_full_targets(models{idx}.conf, B_image_roidb_train, opts.box_param{idx}.bbox_means, opts.box_param{idx}.bbox_stds);
 
+            diff_set = setdiff((1:numel(models)), idx);
+            pre_keep = sum(pre_keeps(:,diff_set), 2);
             [C_image_roidb_train] = weakly_filter_loss(models{idx}, B_image_roidb_train, pre_keep, 0.5, opts.gamma);
 
             [D_image_roidb_train] = weakly_filter_score(models, C_image_roidb_train, PER_Select);
             [D_image_roidb_train] = weakly_full_targets(models{idx}.conf, D_image_roidb_train, opts.box_param{idx}.bbox_means, opts.box_param{idx}.bbox_stds);
 
-            pre_keep = false(numel(unsupervise_ids), 1);
-            for j = 1:numel(D_image_roidb_train) , pre_keep(D_image_roidb_train(j).index) = true; end
+            %pre_keep = false(numel(unsupervise_ids), 1);
+            for j = 1:numel(D_image_roidb_train) , pre_keeps(D_image_roidb_train(j).index, idx) = true; end
             if (opts.debug), inloop_debug(D_image_roidb_train, classes, debug_cache_dir, ['L_', num2str(index), '_', models{idx}.name, '_D']); end
 
             new_image_roidb_train = [warmup_roidb_train{idx}; D_image_roidb_train];
