@@ -1,4 +1,4 @@
-function dataset = voc2007_test_ss(dataset, usage, use_flip)
+function dataset = voc2007_test_eb(dataset, usage, use_flip)
 % Pascal voc 2007 test set with selective search
 % set opts.imdb_train opts.roidb_train 
 % or set opts.imdb_test opts.roidb_train

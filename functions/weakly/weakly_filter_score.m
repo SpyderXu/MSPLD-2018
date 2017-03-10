@@ -25,9 +25,12 @@ function [image_roidb_train] = weakly_filter_score(test_models, image_roidb_trai
 
   for cls = 1:num_class
     scores = lower_score{cls};
-    if (isempty(scores)), continue; end
-    [scorted_score, ~] = sort(scores, 'descend');
-    lower_score{cls} = scorted_score(min(end, SAVE_TERM(cls)));
+    if (isempty(scores))
+      lower_score{cls} = 0;
+    else
+      [scorted_score, ~] = sort(scores, 'descend');
+      lower_score{cls} = scorted_score(min(end, SAVE_TERM(cls)));
+    end
   end
   lower_score = cat(1, lower_score{:});
 
