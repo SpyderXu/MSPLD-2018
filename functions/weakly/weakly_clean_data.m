@@ -4,10 +4,12 @@ function [image_roidb_train] = weakly_clean_data(classes, image_roidb_train, sma
   oks = false(num);               begin_time = tic;
   %% Filter Multiple Boxes
   lower_score = cell(num_class,1);
+  class_number_up = 4;
+  object_number_up = 4;
   for idx = 1:num
-    pseudo_boxes = check_filter_img(image_roidb_train(idx).pseudo_boxes, smallest);
+    pseudo_boxes = weakly_nms_max_pseudo(image_roidb_train(idx).pseudo_boxes, 0.3);
     if (isempty(pseudo_boxes)), continue; end
-    pseudo_boxes = check_save_max(pseudo_boxes, 0.1);
+    pseudo_boxes = weakly_check_filter_img(image_roidb_train(idx).pseudo_boxes, smallest, class_number_up, object_number_up);
     if (isempty(pseudo_boxes)), continue; end
 
     image_roidb_train(idx).pseudo_boxes = pseudo_boxes;
@@ -20,40 +22,7 @@ function [image_roidb_train] = weakly_clean_data(classes, image_roidb_train, sma
   end
 
   image_roidb_train = image_roidb_train(oks);
-  fprintf('weakly_filter_roidb after filter left %4d images\n', numel(image_roidb_train));
+  fprintf('weakly_clean_data after filter left %4d images\n', numel(image_roidb_train));
 
   weakly_debug_info( classes, image_roidb_train );
-end
-
-function pseudo_boxes = check_save_max(pseudo_boxes, min_thresh)
-  class = {pseudo_boxes.class}; class = cat(1, class{:});
-  boxes = {pseudo_boxes.box};   boxes = cat(1, boxes{:});
-  score = {pseudo_boxes.score}; score = cat(1, score{:});
-  unique_cls = unique(class);
-
-  keep = true(numel(class), 1);
-  for c = 1:numel(unique_cls)
-    cls = unique_cls(c);
-    idx = find(class == cls);
-    curkeep = nms_min([boxes(idx,:), score(idx,:)], min_thresh);
-    keep( idx(curkeep) ) = true;
-  end
-  pseudo_boxes = pseudo_boxes(keep);
-
-end
-
-function ok = check_filter_img(pseudo_boxes, smallest)
-  class = {pseudo_boxes.class}; class = cat(1, class{:});
-  boxes = {pseudo_boxes.box};   boxes = cat(1, boxes{:});
-  keepB = find(boxes(:,3)-boxes(:,1) >= smallest);
-  keepA = find(boxes(:,4)-boxes(:,2) >= smallest);
-  keep  = intersect(keepA, keepB);
-  pseudo_boxes = pseudo_boxes(keep);
-  class = class(keep);
-  ok = [];
-  if (numel(unique(class)) >= 4), return; end
-  for i = 1:numel(class)
-    if (numel(find(class == class(i))) >= 4), return; end
-  end
-  ok = pseudo_boxes;
 end

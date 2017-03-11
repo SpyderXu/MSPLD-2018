@@ -13,7 +13,10 @@ function weakly_debug_info(classes, image_roidb_train, losses)
     truee_boxes = zeros(num_class, 1);
 
     total_image = zeros(num_class, 1);
+    todet_image = zeros(num_class, 1);
     corrt_image = zeros(num_class, 1);
+    truee_image = zeros(num_class, 1);
+
     lower_score = inf(num_class, 1);
     hight_score = zeros(num_class, 1);
     lower_loss  = inf(num_class, 1);
@@ -42,23 +45,31 @@ function weakly_debug_info(classes, image_roidb_train, losses)
         end
       end
       image_label = image_roidb_train(j).image_label;
-      det_label = {image_roidb_train(j).pseudo_boxes.class};
+
       total_image(image_label) = total_image(image_label) + 1;
-      det_label = intersect(image_label, cat(1, det_label{:}));
-      corrt_image(det_label) = corrt_image(det_label) + 1;
+      det_label = {image_roidb_train(j).pseudo_boxes.class};
+      det_label = cat(1, det_label{:});
+      todet_image(det_label) = todet_image(det_label) + 1;
+
+      cor_label = intersect(image_label, det_label);
+      corrt_image(cor_label) = corrt_image(cor_label) + 1;
+      tue_label = intersect(det_label, image_label);
+      truee_image(tue_label) = truee_image(tue_label) + 1;
     end
 
     for Cls = 1:num_class
-    fprintf('--[%02d][%12s] B=[precision: %4d/%4d = %.3f ; recall: %4d/%4d = %.3f] I=[%4d/%4d = %.3f] S=[%.3f, %.3f] L=[%.3f, %.3f]\n', Cls, classes{Cls}, ...
+    fprintf('--[%02d][%12s] B=[prec: %4d/%4d = %.3f ; rec: %4d/%4d = %.3f] I=[prec: %4d/%4d = %.3f ; rec: %4d/%4d = %.3f] S=[%.3f, %.3f] L=[%.3f, %.3f]\n', Cls, classes{Cls}, ...
                  truee_boxes(Cls), todet_boxes(Cls), divide( truee_boxes(Cls), todet_boxes(Cls) ), ...
                  cordt_boxes(Cls), total_boxes(Cls), divide( cordt_boxes(Cls), total_boxes(Cls) ), ...
+                 truee_image(Cls), todet_image(Cls), divide( truee_image(Cls), todet_image(Cls) ), ...
                  corrt_image(Cls), total_image(Cls), divide( corrt_image(Cls), total_image(Cls) ), ...
                  lower_score(Cls), hight_score(Cls), lower_loss(Cls), hight_loss(Cls));
     end
     
-    fprintf('Debug_Info %4d : [precision : %4d/%4d = (%.3f,%.3f) ; recall: %4d/%4d = (%.3f,%.3f)] I=[%4d/%4d = (%.3f,%.3f)] cost : %.1f s \n', num_image, ...
+    fprintf('Debug_Info %4d : B=[prec: %4d/%4d = (%.3f,%.3f) ; rec: %4d/%4d = (%.3f,%.3f)] I=[prec:%4d/%4d = (%.3f,%.3f) ; rec: %4d/%4d = (%.3f,%.3f)] cost : %.1f s \n', num_image, ...
                  sum(truee_boxes), sum(todet_boxes), divide( sum(truee_boxes), sum(todet_boxes) ), divide( truee_boxes, todet_boxes ), ...
                  sum(cordt_boxes), sum(total_boxes), divide( sum(cordt_boxes), sum(total_boxes) ), divide( cordt_boxes, total_boxes ), ...
+                 sum(truee_image), sum(todet_image), divide( sum(truee_image), sum(todet_image) ), divide( truee_image, todet_image ), ...
                  sum(corrt_image), sum(total_image), divide( sum(corrt_image), sum(total_image) ), divide( corrt_image, total_image ), toc(begin_time));
                  
 end

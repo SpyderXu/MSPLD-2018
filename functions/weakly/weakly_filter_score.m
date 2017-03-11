@@ -21,7 +21,7 @@ function [image_roidb_train] = weakly_filter_score(test_models, image_roidb_trai
   end
 
   image_roidb_train = image_roidb_train(oks);
-  fprintf('weakly_filter_roidb after filter left %4d images\n', numel(image_roidb_train));
+  fprintf('weakly_filter_score[check] after filter left %4d images\n', numel(image_roidb_train));
 
   for cls = 1:num_class
     scores = lower_score{cls};
@@ -45,6 +45,7 @@ function [image_roidb_train] = weakly_filter_score(test_models, image_roidb_trai
 
   image_roidb_train = image_roidb_train(oks);
   weakly_debug_info( classes, image_roidb_train );
+  fprintf('weakly_filter_score[final] after filter left %4d images\n', numel(image_roidb_train));
 end
 
 function pseudo_boxes = check_filter_score(pseudo_boxes, lower_score)

@@ -14,7 +14,7 @@ struct score {
 } score;
 
 template <typename T>
-void nms_min(const mxArray *input_boxes, double overlap, vector<int> &vPick, int &nPick)
+void nms_max(const mxArray *input_boxes, double overlap, vector<int> &vPick, int &nPick)
 {
 	int nSample = (int)mxGetM(input_boxes);
 	int nDim_boxes = (int)mxGetN(input_boxes);
@@ -52,7 +52,7 @@ void nms_min(const mxArray *input_boxes, double overlap, vector<int> &vPick, int
 
 			double w = max(T(0.0), xx2-xx1+1), h = max(T(0.0), yy2-yy1+1);
 
-			double ov = min( w*h / vArea[last] , w*h / vArea[it_idx] );
+			double ov = max( w*h / vArea[last] , w*h / vArea[it_idx] );
 
 			if (ov > overlap)
 			{
@@ -95,15 +95,15 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	}
 
 	if (nDim_boxes != 5)
-		mexErrMsgTxt("nms_min_mex boxes must has 5 columns");
+		mexErrMsgTxt("nms_max_mex boxes must has 5 columns");
 
 	
 	int nPick = 0;
 	vector<int> vPick(nSample);
 	if(mxGetClassID(input_boxes) == mxDOUBLE_CLASS)
-		nms_min<double>(input_boxes, overlap, vPick, nPick);
+		nms_max<double>(input_boxes, overlap, vPick, nPick);
 	else
-		nms_min<float>(input_boxes, overlap, vPick, nPick);
+		nms_max<float>(input_boxes, overlap, vPick, nPick);
 
 	plhs[0] = mxCreateNumericMatrix(nPick, 1, mxDOUBLE_CLASS, mxREAL);
 	double *pRst = mxGetPr(plhs[0]);

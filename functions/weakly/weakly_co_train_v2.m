@@ -122,6 +122,9 @@ function save_model_path = weakly_co_train_v2(imdb_train, roidb_train, models, v
     %pre_keep = false(numel(unsupervise_ids), 1);
     pre_keeps = zeros(numel(unsupervise_ids), numel(models));
 
+    % rng_seed 5; per_sample 3;
+    %Init_Per_Select = [40, 12, 10, 20, 20, 10, 50, 25, 15, 10,...
+    %                   20, 15, 15, 30, 15, 15, 15, 20, 40, 35];
     Init_Per_Select = [40, 12, 10, 20, 20, 10, 50, 25, 15, 10,...
                        20, 15, 15, 30, 15, 15, 15, 20, 40, 35];
 %% Start Training
@@ -140,7 +143,7 @@ function save_model_path = weakly_co_train_v2(imdb_train, roidb_train, models, v
 
             diff_set = setdiff((1:numel(models)), idx);
             pre_keep = sum(pre_keeps(:,diff_set), 2);
-            [C_image_roidb_train] = weakly_filter_loss(models{idx}, B_image_roidb_train, pre_keep, 0.5, opts.gamma);
+            [C_image_roidb_train] = weakly_filter_loss(models{idx}, B_image_roidb_train, pre_keep, 0.6, opts.gamma);
 
             [D_image_roidb_train] = weakly_filter_score(models, C_image_roidb_train, PER_Select);
             [D_image_roidb_train] = weakly_full_targets(models{idx}.conf, D_image_roidb_train, opts.box_param{idx}.bbox_means, opts.box_param{idx}.bbox_stds);

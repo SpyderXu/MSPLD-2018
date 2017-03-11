@@ -34,7 +34,7 @@ function [new_image_roidb_train] = weakly_filter_loss(train_model, image_roidb_t
   
   new_image_roidb_train = image_roidb_train(cur_keep);
   weakly_debug_info( classes, new_image_roidb_train, Loss(cur_keep, :));
-  fprintf('weakly_filter_loss %4d -> %4d, cost %.1f s\n', number, numel(new_image_roidb_train), toc(begin_time));
+  fprintf('weakly_filter_loss[final] %4d -> %4d, cost %.1f s\n', number, numel(new_image_roidb_train), toc(begin_time));
   caffe.reset_all();
 end
 

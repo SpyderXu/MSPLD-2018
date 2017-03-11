@@ -31,6 +31,15 @@ function startup()
     mkdir_if_missing(fullfile(curdir, 'models'));
 
     rfcn_build();
+    addpath(fullfile(curdir, 'selective_search'));
+    if exist('selective_search/SelectiveSearchCodeIJCV')
+        addpath(fullfile(curdir, 'selective_search/SelectiveSearchCodeIJCV'));
+        addpath(fullfile(curdir, 'selective_search/SelectiveSearchCodeIJCV/Dependencies'));
+        ss_build();
+        fprintf('Compile SelectiveSearchCodeIJCV done\n');
+    else
+        fprintf('Warning: you will need the selective search IJCV code.\n');
+    end
 
     fprintf('rfcn startup done\n');
 end
