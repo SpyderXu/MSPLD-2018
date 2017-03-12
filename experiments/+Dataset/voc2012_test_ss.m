@@ -1,10 +1,10 @@
 function dataset = voc2012_test_ss(dataset, usage, use_flip)
-% Pascal voc 2007 test set with selective search
+% Pascal voc 2012 test set with selective search
 % set opts.imdb_train opts.roidb_train 
 % or set opts.imdb_test opts.roidb_train
 
 % change to point to your devkit install
-devkit                      = voc2007_devkit();
+devkit                      = voc2012_devkit();
 
 switch usage
     case {'train'}
