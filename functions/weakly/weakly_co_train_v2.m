@@ -157,6 +157,7 @@ function save_model_path = weakly_co_train_v2(imdb_train, roidb_train, models, v
             train_mode = weakly_train_mode (models{idx}.conf);
             previous_model{idx}   = weakly_supervised(train_mode, new_image_roidb_train, models{idx}.solver_def_file, models{idx}.net_file, opts.val_interval, ...
                                                       opts.box_param{idx}, models{idx}.conf, cache_dir, [models{idx}.name, '_Loop_', num2str(index)], model_suffix, 'final');
+
         end
 
         for idx = 1:numel(models)
