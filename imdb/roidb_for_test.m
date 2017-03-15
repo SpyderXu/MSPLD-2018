@@ -87,7 +87,7 @@ catch
         assert(strcmp(image_name1, image_name2));
         im = imread(imdb.image_at(i));
         imgsize = size(im);
-        roidb.test_boxes{i} = obtain_proposals(imgsize, regions.boxes{i});
+        roidb.test_boxes{i} = obtain_proposals(imgsize(2:-1:1), regions.boxes{i});
   end
 
   rmpath(fullfile(VOCopts.datadir, 'VOCcode')); 
@@ -97,6 +97,8 @@ catch
   fprintf('done\n');
 end
 
+end %%% For function
+
 
 % ------------------------------------------------------------------------
 function rec = obtain_proposals(imgsize, boxes) 
@@ -105,9 +107,6 @@ function rec = obtain_proposals(imgsize, boxes)
 % change selective search order from [y1 x1 y2 x2] to [x1 y1 x2 y2]
 if ~isempty(boxes)
     boxes = boxes(:, [2 1 4 3]);
-    if flip_proposal
-        boxes(:, [1, 3]) = imgsize(1) + 1 - boxes(:, [3, 1]);
-    end
     assert (all(boxes(:,3) <= imgsize(1)));
     assert (all(boxes(:,4) <= imgsize(2)));
 end

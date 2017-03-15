@@ -1,4 +1,4 @@
-function res = prepare_online_voc(cls, boxes, imdb, cache_name, suffix)
+function res_name = prepare_online_voc(cls, boxes, imdb, cache_name, suffix)
 % res = imdb_eval_voc(cls, boxes, imdb, suffix)
 %   Use the VOCdevkit to evaluate detections specified in boxes
 %   for class cls against the ground-truth boxes in the image
@@ -54,17 +54,18 @@ res_fn = sprintf(VOCopts.detrespath, res_id, cls);
 
 % write out detections in PASCAL format and score
 fid = fopen(res_fn, 'w');
-for i = 1:length(image_ids);
+for i = 1:length(image_ids)
   bbox = boxes{i};
   keep = nms(bbox, 0.3);
   bbox = bbox(keep,:);
   for j = 1:size(bbox,1)
     fprintf(fid, '%s %f %.3f %.3f %.3f %.3f\n', image_ids{i}, bbox(j,end), bbox(j,1:4));
   end
-  copyfile(res_fn, conf.cache_dir);
 end
+copyfile(res_fn, conf.cache_dir);
+tempS = regexp(res_fn, '/', 'split');
+res_name = fullfile(conf.cache_dir, tempS{end});
 fclose(fid);
-
 delete(res_fn);
 
 rmpath(fullfile(VOCopts.datadir, 'VOCcode')); 

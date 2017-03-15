@@ -1,4 +1,4 @@
-function weakly_online_test(confs, imdb, roidb, varargin)
+function res = weakly_online_test(confs, imdb, roidb, varargin)
 % --------------------------------------------------------
 % R-FCN implementation
 % Modified from MATLAB Faster R-CNN (https://github.com/shaoqingren/faster_rcnn)
@@ -194,9 +194,10 @@ function weakly_online_test(confs, imdb, roidb, varargin)
 
 	tic;
     %  only for pascal voc
+    res = cell(num_classes, 1);
     parfor model_ind = 1:num_classes
         cls = imdb.classes{model_ind};
-        res(model_ind) = prepare_online_voc(cls, aboxes{model_ind}, imdb, opts.cache_name, opts.suffix);
+        res{model_ind} = prepare_online_voc(cls, aboxes{model_ind}, imdb, opts.cache_name, opts.suffix);
     end
     
     diary off;
