@@ -1,10 +1,13 @@
-function weakly_debug_info(classes, image_roidb_train, losses)
+function weakly_debug_info(classes, image_roidb_train, losses, loss_threshes)
     begin_time = tic;
     num_image = numel(image_roidb_train);
     num_class = numel(classes);
     
     if ~exist('losses', 'var')
-        losses = inf(num_image, num_class);
+      losses = inf(num_image, num_class);
+    end
+    if ~exist('loss_threshes', 'var')
+      loss_threshes = inf(num_class, 1);
     end
 
     total_boxes = zeros(num_class, 1);
@@ -58,12 +61,12 @@ function weakly_debug_info(classes, image_roidb_train, losses)
     end
 
     for Cls = 1:num_class
-    fprintf('--[%02d][%12s] B=[prec: %4d/%4d = %.3f ; rec: %4d/%4d = %.3f] I=[prec: %4d/%4d = %.3f ; rec: %4d/%4d = %.3f] S=[%.3f, %.3f] L=[%.3f, %.3f]\n', Cls, classes{Cls}, ...
+    fprintf('--[%02d][%12s] B=[prec: %4d/%4d = %.3f ; rec: %4d/%4d = %.3f] I=[prec: %4d/%4d = %.3f ; rec: %4d/%4d = %.3f] S=[%.3f, %.3f] L=[%.3f, %.3f](thresh: %.3f)\n', Cls, classes{Cls}, ...
                  truee_boxes(Cls), todet_boxes(Cls), divide( truee_boxes(Cls), todet_boxes(Cls) ), ...
                  cordt_boxes(Cls), total_boxes(Cls), divide( cordt_boxes(Cls), total_boxes(Cls) ), ...
                  truee_image(Cls), todet_image(Cls), divide( truee_image(Cls), todet_image(Cls) ), ...
                  corrt_image(Cls), total_image(Cls), divide( corrt_image(Cls), total_image(Cls) ), ...
-                 lower_score(Cls), hight_score(Cls), lower_loss(Cls), hight_loss(Cls));
+                 lower_score(Cls), hight_score(Cls), lower_loss(Cls), hight_loss(Cls), loss_threshes(Cls));
     end
     
     fprintf('Debug_Info %4d : B=[prec: %4d/%4d = (%.3f,%.3f) ; rec: %4d/%4d = (%.3f,%.3f)] I=[prec:%4d/%4d = (%.3f,%.3f) ; rec: %4d/%4d = (%.3f,%.3f)] cost : %.1f s \n', num_image, ...

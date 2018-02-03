@@ -42,10 +42,11 @@ function [sampled_train, saved_train] = weakly_sample_train_v2(image_roidb_train
         if (num_select_per_class(label) < num_per_class(label))
 	        num_select_per_class(label) = num_select_per_class(label) + 1;
 	        selected_ids(end+1) = index;
-            %if (flip), selected_ids(end+1) = index + total; end
+          %if (flip), selected_ids(end+1) = index + total; end
         end
     end
-    fprintf('Sample %d images (not include fliped pics)\n', numel(selected_ids));
+
+    fprintf('Sample [%4d]/[%4d] images (not include fliped pics), averaged images per class : %.2f\n', numel(selected_ids), total, numel(selected_ids)*1./numel(classes));
     selected_ids  = sort(selected_ids);
     saved_ids     = setdiff((1:total), selected_ids);
 

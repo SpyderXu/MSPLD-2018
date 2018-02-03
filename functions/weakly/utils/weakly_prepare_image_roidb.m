@@ -49,7 +49,8 @@ function [image_roidb, means, stds] = append_bbox_regression_targets(conf, image
        [image_roidb(i).bbox_targets, valid_imgs(i)] = ...
            compute_targets(conf, rois, image_roidb(i).overlap);
     end
-    if ~all(valid_imgs)
+    % For noise experiments, temporally remove this
+    if ~all(valid_imgs) && false
         image_roidb = image_roidb(valid_imgs);
         num_images = length(image_roidb);
         fprintf('Warning: rfcn_prepare_image_roidb: filter out %d images, which contains zero valid samples\n', sum(~valid_imgs));

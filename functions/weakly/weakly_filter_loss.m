@@ -8,6 +8,7 @@ function [new_image_roidb_train] = weakly_filter_loss(train_model, image_roidb_t
   classes = train_model.conf.classes;
   number = numel(image_roidb_train);
   Loss = Inf(numel(image_roidb_train), numel(classes));
+  loss_threshes = Inf(numel(classes),1);
 
   for idx = 1:number
     if (rem(idx, 1000) == 0 || idx == number), fprintf('weakly_filter_loss : handle %4d / %4d image_roidb_train, cost %.2f s\n', idx, number, toc(begin_time)); end
@@ -30,10 +31,11 @@ function [new_image_roidb_train] = weakly_filter_loss(train_model, image_roidb_t
     [mx_score, mx_ids] = sort(Loss(valid, cls));
     loss_thresh = mx_score(ceil(numel(valid)*save_ratio));
     cur_keep( valid( mx_ids( mx_score <= loss_thresh) ) ) = true;
+    loss_threshes(cls) = loss_thresh;
   end
   
   new_image_roidb_train = image_roidb_train(cur_keep);
-  weakly_debug_info( classes, new_image_roidb_train, Loss(cur_keep, :));
+  weakly_debug_info( classes, new_image_roidb_train, Loss(cur_keep, :), loss_threshes);
   fprintf('weakly_filter_loss[final] %4d -> %4d, cost %.1f s\n', number, numel(new_image_roidb_train), toc(begin_time));
   caffe.reset_all();
 end

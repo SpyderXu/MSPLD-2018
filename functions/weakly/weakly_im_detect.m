@@ -1,9 +1,11 @@
 function [pred_boxes, scores] = weakly_im_detect(conf, caffe_net, im, boxes, max_rois_num_in_gpu)
 % --------------------------------------------------------
-% R-FCN implementation
+% MSPLD implementation
 % Modified from MATLAB Faster R-CNN (https://github.com/shaoqingren/faster_rcnn)
-% Copyright (c) 2016, Jifeng Dai
+% Copyright (c) 2018, Xuanyi Dong
 % Licensed under The MIT License [see LICENSE for details]
+% --------------------------------------------------------
+
     assert (numel(caffe_net.inputs) == 2);
     regression = conf.regression;
     if (regression)

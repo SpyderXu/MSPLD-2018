@@ -88,7 +88,7 @@ function [shuffled_inds, sub_inds] = weakly_generate_random_minibatch(shuffled_i
 end
 
 function weakly_show_state(iter, max_iter, train_results)
-    fprintf('\n------------------------ %10s Iteration %4d / %4d -------------------------\n', datestr(datevec(now()), '[yyyy:mm:dd]@[HH:MM:SS]'), iter, max_iter);
+    fprintf('------------------------ %10s Iteration %4d / %4d -------------------------\n', datestr(datevec(now()), '[yyyy:mm:dd]@[HH:MM:SS]'), iter, max_iter);
     fprintf('Training : accuracy %.3g, loss (cls %.3g)\n', ...
         mean(train_results.accuracy.data), ...
         mean(train_results.loss_cls.data));

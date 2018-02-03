@@ -1,4 +1,4 @@
-function [image_roidb_train] = weakly_generate_pseudo(test_models, image_roidb_train, boost)
+function [image_roidb_train] = weakly_generate_pseudo_v4(test_models, image_roidb_train, boost)
 % --------------------------------------------------------
 % MSPLD implementation
 % Copyright (c) 2018, Xuanyi Dong

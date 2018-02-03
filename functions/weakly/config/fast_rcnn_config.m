@@ -1,9 +1,9 @@
 function conf = fast_rcnn_config(varargin)
 % conf = rfcn_config(varargin)
 % --------------------------------------------------------
-% R-FCN implementation
+% MSPLD implementation
 % Modified from MATLAB Faster R-CNN (https://github.com/shaoqingren/faster_rcnn)
-% Copyright (c) 2016, Jifeng Dai
+% Copyright (c) 2018, Xuanyi Dong
 % Licensed under The MIT License [see LICENSE for details]
 % --------------------------------------------------------
 %

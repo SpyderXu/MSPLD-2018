@@ -1,9 +1,9 @@
 function startup()
 % startup()
 % --------------------------------------------------------
-% R-FCN implementation
+% MSPLD implementation
 % Modified from MATLAB Faster R-CNN (https://github.com/shaoqingren/faster_rcnn)
-% Copyright (c) 2016, Jifeng Dai
+% Copyright (c) 2018, Xuanyi Dong
 % Licensed under The MIT License [see LICENSE for details]
 % --------------------------------------------------------
 
@@ -13,6 +13,7 @@ function startup()
     addpath(genpath(fullfile(curdir, 'bin')));
     addpath(genpath(fullfile(curdir, 'experiments')));
     addpath(genpath(fullfile(curdir, 'imdb')));
+    addpath(genpath(fullfile(curdir, 'data')));
 
     mkdir_if_missing(fullfile(curdir, 'datasets'));
 
@@ -30,7 +31,7 @@ function startup()
 
     mkdir_if_missing(fullfile(curdir, 'models'));
 
-    rfcn_build();
+    mspld_build();
     addpath(fullfile(curdir, 'selective_search'));
     if exist('selective_search/SelectiveSearchCodeIJCV')
         addpath(fullfile(curdir, 'selective_search/SelectiveSearchCodeIJCV'));
@@ -41,5 +42,5 @@ function startup()
         fprintf('Warning: you will need the selective search IJCV code.\n');
     end
 
-    fprintf('rfcn startup done\n');
+    fprintf('MSPLD startup done\n');
 end

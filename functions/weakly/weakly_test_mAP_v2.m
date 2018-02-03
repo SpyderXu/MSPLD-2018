@@ -1,8 +1,8 @@
 function mAP = weakly_test_mAP_v2(confs, imdb, roidb, varargin)
 % --------------------------------------------------------
-% R-FCN implementation
+% MSPLD implementation
 % Modified from MATLAB Faster R-CNN (https://github.com/shaoqingren/faster_rcnn)
-% Copyright (c) 2016, Jifeng Dai
+% Copyright (c) 2018, Xuanyi Dong
 % Licensed under The MIT License [see LICENSE for details]
 % --------------------------------------------------------
 
@@ -47,11 +47,12 @@ function mAP = weakly_test_mAP_v2(confs, imdb, roidb, varargin)
     % init caffe net
     caffe_log_file_base = fullfile(cache_dir, 'caffe_log');
     caffe.init_log(caffe_log_file_base);
-    caffe_net = [];
-    for i = 1:numel(opts.net_defs)
-      caffe_net{i} = caffe.Net(opts.net_defs{i}, 'test');
-      caffe_net{i}.copy_from(opts.net_models{i});
-    end
+    num_nets = numel(opts.net_defs);
+    %caffe_net = [];
+    %for i = 1:numel(opts.net_defs)
+    %  caffe_net{i} = caffe.Net(opts.net_defs{i}, 'test');
+    %  caffe_net{i}.copy_from(opts.net_models{i});
+    %end
 
     % set random seed
     prev_rng = seed_rand(opts.rng_seed);
@@ -87,20 +88,24 @@ function mAP = weakly_test_mAP_v2(confs, imdb, roidb, varargin)
     end
 
     t_start = tic;
-    for inet = 1:numel(caffe_net)
+    for inet = 1:num_nets
       count = 0;
-      fprintf('>>> %3d/%3d net procedure\n', inet, numel(caffe_net));
+      caffe.reset_all();
+      fprintf('>>> %3d/%3d net procedure : %s \n', inet, num_nets, opts.net_defs{inet});
+      caffe_net = caffe.Net(opts.net_defs{inet}, 'test');
+      caffe_net.copy_from(opts.net_models{inet});
+
       for i = 1:num_images
         count = count + 1;
         if (rem(count, opts.dis_itertion) == 1), fprintf('%s: test (%s) %d/%d cost : %.1f s\n', procid(), imdb.name, count, num_images, toc(t_start)); end
         d = roidb.rois(i);
         im = imread(imdb.image_at(i));
 
-        [boxes, scores] = weakly_im_detect(confs{inet}, caffe_net{inet}, im, d.boxes(~d.gt,:), confs{inet}.max_rois_num_in_gpu);
+        [boxes, scores] = weakly_im_detect(confs{inet}, caffe_net, im, d.boxes(~d.gt,:), confs{inet}.max_rois_num_in_gpu);
         for j = 1:num_classes
             cls_boxes = boxes(:, (1+(j-1)*4):((j)*4));
             cls_scores = scores(:, j);
-            temp = cat(2, single(cls_boxes), single(cls_scores)) / numel(caffe_net);
+            temp = cat(2, single(cls_boxes), single(cls_scores)) / num_nets;
             if (isempty(aboxes{j}{i}))
               aboxes{j}{i} = temp;
             else
@@ -125,7 +130,7 @@ function mAP = weakly_test_mAP_v2(confs, imdb, roidb, varargin)
     % Peform AP evaluation
     % ------------------------------------------------------------------------
 
-	tic;
+    tic;
     if isequal(imdb.eval_func, @imdb_eval_voc)
         %new_parpool();
         parfor model_ind = 1:num_classes

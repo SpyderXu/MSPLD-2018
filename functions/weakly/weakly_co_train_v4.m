@@ -1,4 +1,4 @@
-function save_model_path = weakly_co_train_v3(imdb_train, roidb_train, models, varargin)
+function save_model_path = weakly_co_train_v4(imdb_train, roidb_train, models, varargin)
 % --------------------------------------------------------
 % MSPLD implementation
 % Modified from MATLAB Faster R-CNN (https://github.com/shaoqingren/faster_rcnn)
@@ -86,16 +86,18 @@ function save_model_path = weakly_co_train_v3(imdb_train, roidb_train, models, v
     
 
 %% making tran/val data
-    fprintf('Preparing training data...');
+    fprintf('Preparing training data with noise datas...');
     image_roidb_train = cellfun(@(x, y) ... // @(imdbs, roidbs)
                             arrayfun(@(z) ... //@([1:length(x.image_ids)])
                                 struct('image_path', x.image_at(z), 'image_id', x.image_ids{z}, 'im_size', x.sizes(z, :), 'imdb_name', x.name, ...
                                 'overlap', y.rois(z).overlap, 'boxes', y.rois(z).boxes, 'class', y.rois(z).class, 'image', [], 'bbox_targets', [], ...
                                 'GT_Index', y.rois(z).gt, 'image_label', setdiff(unique(y.rois(z).class(y.rois(z).gt)), [0]), 'Debug_GT_Cls', [], 'Debug_GT_Box', []), ...
                                 [1:length(x.image_ids)]', 'UniformOutput', true), imdb_train(:), roidb_train(:), 'UniformOutput', false);
-    image_roidb_train = cat(1, image_roidb_train{:});
 
-    [warmup_ids, unsupervise_ids] = weakly_sample_train_v2(image_roidb_train, opts.per_class_sample, imdb_train{1}.flip);
+    [warmup_ids, unsupervise_ids] = weakly_sample_train_v2(image_roidb_train{1}, opts.per_class_sample, imdb_train{1}.flip);
+    pre_total = numel(image_roidb_train{1});
+    image_roidb_train = cat(1, image_roidb_train{:});
+    unsupervise_ids = [unsupervise_ids, pre_total+1:numel(image_roidb_train)];
 
     warmup_roidb_train = cell(numel(models), 1);
     image_roidb_train  = cell(numel(models), 1);
@@ -103,6 +105,7 @@ function save_model_path = weakly_co_train_v3(imdb_train, roidb_train, models, v
         cur_image_roidb_train = weakly_prepare_image_roidb(models{i}.conf, imdb_train, roidb_train, opts.box_param{i}.bbox_means, opts.box_param{i}.bbox_stds);
         warmup_roidb_train{i} = clean_data(cur_image_roidb_train(warmup_ids), true);
         image_roidb_train{i}  = clean_data(cur_image_roidb_train(unsupervise_ids), false);
+        fprintf('Clean data for %02d / %02d model : %s \n', i, numel(models), models{i}.name);
     end
     fprintf('Done.\n');
 %% assert conf flip attr
@@ -134,7 +137,7 @@ function save_model_path = weakly_co_train_v3(imdb_train, roidb_train, models, v
 
         base_select = opts.base_select(index);
         fprintf('\n-------Start Loop [%2d]/[%2d] <---> with base_select : %4.2f-------\n', index, total_loop, base_select);
-        [A_image_roidb_train] = weakly_generate_pseudo(models, image_roidb_train{1}, opts.boost);
+        [A_image_roidb_train] = weakly_generate_pseudo_v4(models, image_roidb_train{1}, opts.boost);
 
         for idx = 1:numel(models)
             fprintf('>>>>>>>>For [%2d]/[%2d]-th model: %s\n', idx, total_model, models{idx}.name);
@@ -202,6 +205,8 @@ end
 
 function x = clean_data(image_roidb_train, save_overlap)
   x = [];
+  true_images = [];
+  flip_images = [];
   for index = 1:numel(image_roidb_train)
     gt = image_roidb_train(index).GT_Index;
     if (save_overlap == false)
@@ -231,8 +236,23 @@ function x = clean_data(image_roidb_train, save_overlap)
                         'image_label',  image_roidb_train(index).image_label, ...
                         'index', index);
     end
-    x{end+1} = Struct;
+    if numel( strfind(Struct.image_id, '_flip') ) == 0
+        true_images{end+1} = Struct;
+    else
+        flip_images{end+1} = Struct;
+    end
   end
+  assert ( numel(true_images) == numel(flip_images) );
+  for i = 1:numel(true_images)
+    assert ( strcmp( [true_images{i}.image_id,'_flip'], flip_images{i}.image_id ) == 1);
+  end
+  for i = 1:numel(true_images)
+      x{end+1} = true_images{i};
+  end
+  for i = 1:numel(flip_images)
+      x{end+1} = flip_images{i};
+  end
+
   if numel(x) ~= 0
     x = cat(1, x{:});
   end
