@@ -174,15 +174,12 @@ def main(in_file, out_file, idir, meta):
 
   none_num = 0
   for obj in objects:
-    if obj.det is 'None': none_num += 1
+    if obj.det == 'None': none_num += 1
   print ('total : {:}, none : {:}'.format(len(objects), none_num))
    
 
 if __name__ == '__main__':
   imagenet_dir = '/Users/dongxuanyi/datasets/ILSVRC2012/val'
-  in_file   = 'ImageNet-1000.pvoc'
-  pvoc_file = 'ImageNet-1000.pvoc'
-  coco_file = 'ImageNet-1000.coco'
   coco = load_meta('ms-coco',   80)
   pvoc = load_meta('pascal_voc',20)
   print ('MS-COCO')
@@ -191,4 +188,9 @@ if __name__ == '__main__':
   print_meta (pvoc)
 
 
-  main(in_file, pvoc_file, imagenet_dir, pvoc)
+  #in_file   = 'ImageNet-1000.pvoc'
+  #pvoc_file = 'ImageNet-1000.pvoc'
+  #main(in_file, pvoc_file, imagenet_dir, pvoc)
+
+  coco_file = 'ImageNet-1000.coco'
+  main(coco_file, coco_file, imagenet_dir, pvoc)
