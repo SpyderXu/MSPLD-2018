@@ -80,7 +80,7 @@ def find_obj(inputs, meta):
       _value = value
   if len(ssssss) == 0: return False, None, None
   if len(ssssss) >  1: return False, '{:}'.format(ssssss), None
-  if len(inputs) >  2: return False, '{:}'.format(ssssss), None
+  if len(inputs) >  2 or len(inputs) == 1: return False, '{:}'.format(ssssss), None
 
   A = []
   for x in _value:
@@ -131,9 +131,11 @@ def main(in_file, out_file, idir, meta):
   #save_txt(objects, 'ori-imagenet-1k', True)
   side, resize = 1500, 800
 
+  less = sum([1 for obj in objects if obj.det is None])
+
   for obj in objects:
     if obj.det is not None: continue
-    print ('{:} {:} {:}'.format(obj.name, obj.cls, obj.description))
+    print ('{:} {:} {:}   still needs {:}'.format(obj.name, obj.cls, obj.description, less))
     cdir = osp.join(idir, obj.name)
     images = glob.glob( osp.join(cdir, '*.JPEG') )
     image = images[0]
@@ -164,8 +166,9 @@ def main(in_file, out_file, idir, meta):
 
         if ok:
           message = None
+          less = less - 1
           break
-      elif (key >= ord('a') and key <= ord('z')) or (key == ord('.')):
+      elif (key >= ord('a') and key <= ord('z')) or (key == ord('.')) or (key == ord('-')):
         inputs += chr(key)
       else:
         print ('Unkown key : {:}'.format(key))
@@ -193,4 +196,4 @@ if __name__ == '__main__':
   #main(in_file, pvoc_file, imagenet_dir, pvoc)
 
   coco_file = 'ImageNet-1000.coco'
-  main(coco_file, coco_file, imagenet_dir, pvoc)
+  main(coco_file, coco_file, imagenet_dir, coco)
