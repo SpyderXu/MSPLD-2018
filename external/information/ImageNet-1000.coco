@@ -534,467 +534,467 @@ n02841315  533 binoculars                     None
 n04009552  534 projector                      None      
 n04356056  535 sunglasses                     None      
 n03692522  536 loupe                          None      
-n04044716  537 radio_telescope               
-n02879718  538 bow                           
-n02950826  539 cannon                        
-n02749479  540 assault_rifle                 
-n04090263  541 rifle                         
-n04008634  542 projectile                    
-n03085013  543 computer_keyboard             
-n04505470  544 typewriter_keyboard           
-n03126707  545 crane                         
-n03666591  546 lighter                       
-n02666196  547 abacus                        
-n02977058  548 cash_machine                  
-n04238763  549 slide_rule                    
+n04044716  537 radio_telescope                None      
+n02879718  538 bow                            None      
+n02950826  539 cannon                         None      
+n02749479  540 assault_rifle                  None      
+n04090263  541 rifle                          None      
+n04008634  542 projectile                     None      
+n03085013  543 computer_keyboard              keyboard  
+n04505470  544 typewriter_keyboard            None      
+n03126707  545 crane                          None      
+n03666591  546 lighter                        None      
+n02666196  547 abacus                         None      
+n02977058  548 cash_machine                   None      
+n04238763  549 slide_rule                     None      
 n03180011  550 desktop_computer               tv/monitor
-n03485407  551 hand-held_computer            
+n03485407  551 hand-held_computer             None      
 n03832673  552 notebook                       tv/monitor
-n06359193  553 web_site                      
-n03496892  554 harvester                     
-n04428191  555 thresher                      
-n04004767  556 printer                       
-n04243546  557 slot                          
-n04525305  558 vending_machine               
-n04179913  559 sewing_machine                
-n03602883  560 joystick                      
-n04372370  561 switch                        
-n03532672  562 hook                          
+n06359193  553 web_site                       None      
+n03496892  554 harvester                      None      
+n04428191  555 thresher                       None      
+n04004767  556 printer                        None      
+n04243546  557 slot                           None      
+n04525305  558 vending_machine                None      
+n04179913  559 sewing_machine                 None      
+n03602883  560 joystick                       None      
+n04372370  561 switch                         None      
+n03532672  562 hook                           None      
 n02974003  563 car_wheel                      car       
-n03874293  564 paddlewheel                   
-n03944341  565 pinwheel                      
-n03992509  566 potter's_wheel                
-n03425413  567 gas_pump                      
-n02966193  568 carousel                      
-n04371774  569 swing                         
-n04067472  570 reel                          
-n04040759  571 radiator                      
-n04019541  572 puck                          
-n03492542  573 hard_disc                     
-n04355933  574 sunglass                      
-n03929660  575 pick                          
-n02965783  576 car_mirror                    
-n04258138  577 solar_dish                    
-n04074963  578 remote_control                
-n03208938  579 disk_brake                    
-n02910353  580 buckle                        
-n03476684  581 hair_slide                    
-n03627232  582 knot                          
-n03075370  583 combination_lock              
-n03874599  584 padlock                       
-n03804744  585 nail                          
-n04127249  586 safety_pin                    
-n04153751  587 screw                         
-n03803284  588 muzzle                        
-n04162706  589 seat_belt                     
-n04228054  590 ski                           
-n02948072  591 candle                        
-n03590841  592 jack-o'-lantern               
-n04286575  593 spotlight                     
-n04456115  594 torch                         
-n03814639  595 neck_brace                    
-n03933933  596 pier                          
-n04485082  597 tripod                        
-n03733131  598 maypole                       
-n03794056  599 mousetrap                     
-n04275548  600 spider_web                    
-n01768244  601 trilobite                     
-n01770081  602 harvestman                    
-n01770393  603 scorpion                      
-n01773157  604 black_and_gold_garden_spider  
-n01773549  605 barn_spider                   
-n01773797  606 garden_spider                 
-n01774384  607 black_widow                   
-n01774750  608 tarantula                     
-n01775062  609 wolf_spider                   
-n01776313  610 tick                          
-n01784675  611 centipede                     
-n01990800  612 isopod                        
-n01978287  613 Dungeness_crab                
-n01978455  614 rock_crab                     
-n01980166  615 fiddler_crab                  
-n01981276  616 king_crab                     
-n01983481  617 American_lobster              
-n01984695  618 spiny_lobster                 
-n01985128  619 crayfish                      
-n01986214  620 hermit_crab                   
-n02165105  621 tiger_beetle                  
-n02165456  622 ladybug                       
-n02167151  623 ground_beetle                 
-n02168699  624 long-horned_beetle            
-n02169497  625 leaf_beetle                   
-n02172182  626 dung_beetle                   
-n02174001  627 rhinoceros_beetle             
-n02177972  628 weevil                        
-n02190166  629 fly                           
-n02206856  630 bee                           
-n02226429  631 grasshopper                   
-n02229544  632 cricket                       
-n02231487  633 walking_stick                 
-n02233338  634 cockroach                     
-n02236044  635 mantis                        
-n02256656  636 cicada                        
-n02259212  637 leafhopper                    
-n02264363  638 lacewing                      
-n02268443  639 dragonfly                     
-n02268853  640 damselfly                     
-n02276258  641 admiral                       
-n02277742  642 ringlet                       
-n02279972  643 monarch                       
-n02280649  644 cabbage_butterfly             
-n02281406  645 sulphur_butterfly             
-n02281787  646 lycaenid                      
-n01910747  647 jellyfish                     
-n01914609  648 sea_anemone                   
-n01917289  649 brain_coral                   
-n01924916  650 flatworm                      
-n01930112  651 nematode                      
-n01943899  652 conch                         
-n01944390  653 snail                         
-n01945685  654 slug                          
-n01950731  655 sea_slug                      
-n01955084  656 chiton                        
-n02319095  657 sea_urchin                    
-n02321529  658 sea_cucumber                  
-n03584829  659 iron                          
-n03297495  660 espresso_maker                
-n03761084  661 microwave                     
-n03259280  662 Dutch_oven                    
-n04111531  663 rotisserie                    
-n04442312  664 toaster                       
-n04542943  665 waffle_iron                   
-n04517823  666 vacuum                        
-n03207941  667 dishwasher                    
-n04070727  668 refrigerator                  
-n04554684  669 washer                        
-n03133878  670 Crock_Pot                     
-n03400231  671 frying_pan                    
-n04596742  672 wok                           
-n02939185  673 caldron                       
-n03063689  674 coffeepot                     
-n04398044  675 teapot                        
-n04270147  676 spatula                       
-n02699494  677 altar                         
-n04486054  678 triumphal_arch                
-n03899768  679 patio                         
-n04311004  680 steel_arch_bridge             
-n04366367  681 suspension_bridge             
-n04532670  682 viaduct                       
-n02793495  683 barn                          
-n03457902  684 greenhouse                    
-n03877845  685 palace                        
-n03781244  686 monastery                     
-n03661043  687 library                       
-n02727426  688 apiary                        
-n02859443  689 boathouse                     
-n03028079  690 church                        
-n03788195  691 mosque                        
-n04346328  692 stupa                         
-n03956157  693 planetarium                   
-n04081281  694 restaurant                    
-n03032252  695 cinema                        
-n03529860  696 home_theater                  
-n03697007  697 lumbermill                    
-n03065424  698 coil                          
-n03837869  699 obelisk                       
-n04458633  700 totem_pole                    
-n02980441  701 castle                        
-n04005630  702 prison                        
-n03461385  703 grocery_store                 
-n02776631  704 bakery                        
-n02791270  705 barbershop                    
-n02871525  706 bookshop                      
-n02927161  707 butcher_shop                  
-n03089624  708 confectionery                 
-n04200800  709 shoe_shop                     
-n04443257  710 tobacco_shop                  
-n04462240  711 toyshop                       
-n03388043  712 fountain                      
-n03042490  713 cliff_dwelling                
-n04613696  714 yurt                          
-n03216828  715 dock                          
-n02892201  716 brass                         
-n03743016  717 megalith                      
-n02788148  718 bannister                     
-n02894605  719 breakwater                    
-n03160309  720 dam                           
-n03000134  721 chainlink_fence               
-n03930313  722 picket_fence                  
-n04604644  723 worm_fence                    
-n04326547  724 stone_wall                    
+n03874293  564 paddlewheel                    None      
+n03944341  565 pinwheel                       None      
+n03992509  566 potter's_wheel                 None      
+n03425413  567 gas_pump                       None      
+n02966193  568 carousel                       None      
+n04371774  569 swing                          None      
+n04067472  570 reel                           None      
+n04040759  571 radiator                       None      
+n04019541  572 puck                           None      
+n03492542  573 hard_disc                      None      
+n04355933  574 sunglass                       None      
+n03929660  575 pick                           None      
+n02965783  576 car_mirror                     None      
+n04258138  577 solar_dish                     None      
+n04074963  578 remote_control                 None      
+n03208938  579 disk_brake                     None      
+n02910353  580 buckle                         None      
+n03476684  581 hair_slide                     None      
+n03627232  582 knot                           None      
+n03075370  583 combination_lock               None      
+n03874599  584 padlock                        None      
+n03804744  585 nail                           None      
+n04127249  586 safety_pin                     None      
+n04153751  587 screw                          None      
+n03803284  588 muzzle                         None      
+n04162706  589 seat_belt                      None      
+n04228054  590 ski                            None      
+n02948072  591 candle                         None      
+n03590841  592 jack-o'-lantern                None      
+n04286575  593 spotlight                      None      
+n04456115  594 torch                          None      
+n03814639  595 neck_brace                     None      
+n03933933  596 pier                           None      
+n04485082  597 tripod                         None      
+n03733131  598 maypole                        None      
+n03794056  599 mousetrap                      None      
+n04275548  600 spider_web                     None      
+n01768244  601 trilobite                      None      
+n01770081  602 harvestman                     None      
+n01770393  603 scorpion                       None      
+n01773157  604 black_and_gold_garden_spider   None      
+n01773549  605 barn_spider                    None      
+n01773797  606 garden_spider                  None      
+n01774384  607 black_widow                    None      
+n01774750  608 tarantula                      None      
+n01775062  609 wolf_spider                    None      
+n01776313  610 tick                           None      
+n01784675  611 centipede                      None      
+n01990800  612 isopod                         None      
+n01978287  613 Dungeness_crab                 None      
+n01978455  614 rock_crab                      None      
+n01980166  615 fiddler_crab                   None      
+n01981276  616 king_crab                      None      
+n01983481  617 American_lobster               None      
+n01984695  618 spiny_lobster                  None      
+n01985128  619 crayfish                       None      
+n01986214  620 hermit_crab                    None      
+n02165105  621 tiger_beetle                   None      
+n02165456  622 ladybug                        None      
+n02167151  623 ground_beetle                  None      
+n02168699  624 long-horned_beetle             None      
+n02169497  625 leaf_beetle                    None      
+n02172182  626 dung_beetle                    None      
+n02174001  627 rhinoceros_beetle              None      
+n02177972  628 weevil                         None      
+n02190166  629 fly                            None      
+n02206856  630 bee                            None      
+n02226429  631 grasshopper                    None      
+n02229544  632 cricket                        None      
+n02231487  633 walking_stick                  None      
+n02233338  634 cockroach                      None      
+n02236044  635 mantis                         None      
+n02256656  636 cicada                         None      
+n02259212  637 leafhopper                     None      
+n02264363  638 lacewing                       None      
+n02268443  639 dragonfly                      None      
+n02268853  640 damselfly                      None      
+n02276258  641 admiral                        None      
+n02277742  642 ringlet                        None      
+n02279972  643 monarch                        None      
+n02280649  644 cabbage_butterfly              None      
+n02281406  645 sulphur_butterfly              None      
+n02281787  646 lycaenid                       None      
+n01910747  647 jellyfish                      None      
+n01914609  648 sea_anemone                    None      
+n01917289  649 brain_coral                    None      
+n01924916  650 flatworm                       None      
+n01930112  651 nematode                       None      
+n01943899  652 conch                          None      
+n01944390  653 snail                          None      
+n01945685  654 slug                           None      
+n01950731  655 sea_slug                       None      
+n01955084  656 chiton                         None      
+n02319095  657 sea_urchin                     None      
+n02321529  658 sea_cucumber                   None      
+n03584829  659 iron                           None      
+n03297495  660 espresso_maker                 None      
+n03761084  661 microwave                      microwave 
+n03259280  662 Dutch_oven                     oven      
+n04111531  663 rotisserie                     None      
+n04442312  664 toaster                        toaster   
+n04542943  665 waffle_iron                    None      
+n04517823  666 vacuum                         None      
+n03207941  667 dishwasher                     None      
+n04070727  668 refrigerator                   refrigerator
+n04554684  669 washer                         None      
+n03133878  670 Crock_Pot                      None      
+n03400231  671 frying_pan                     None      
+n04596742  672 wok                            None      
+n02939185  673 caldron                        None      
+n03063689  674 coffeepot                      None      
+n04398044  675 teapot                         None      
+n04270147  676 spatula                        None      
+n02699494  677 altar                          None      
+n04486054  678 triumphal_arch                 None      
+n03899768  679 patio                          None      
+n04311004  680 steel_arch_bridge              None      
+n04366367  681 suspension_bridge              None      
+n04532670  682 viaduct                        None      
+n02793495  683 barn                           None      
+n03457902  684 greenhouse                     None      
+n03877845  685 palace                         None      
+n03781244  686 monastery                      None      
+n03661043  687 library                        None      
+n02727426  688 apiary                         None      
+n02859443  689 boathouse                      None      
+n03028079  690 church                         None      
+n03788195  691 mosque                         None      
+n04346328  692 stupa                          None      
+n03956157  693 planetarium                    None      
+n04081281  694 restaurant                     None      
+n03032252  695 cinema                         None      
+n03529860  696 home_theater                   None      
+n03697007  697 lumbermill                     None      
+n03065424  698 coil                           None      
+n03837869  699 obelisk                        None      
+n04458633  700 totem_pole                     None      
+n02980441  701 castle                         None      
+n04005630  702 prison                         None      
+n03461385  703 grocery_store                  None      
+n02776631  704 bakery                         None      
+n02791270  705 barbershop                     None      
+n02871525  706 bookshop                       None      
+n02927161  707 butcher_shop                   None      
+n03089624  708 confectionery                  None      
+n04200800  709 shoe_shop                      None      
+n04443257  710 tobacco_shop                   None      
+n04462240  711 toyshop                        None      
+n03388043  712 fountain                       None      
+n03042490  713 cliff_dwelling                 None      
+n04613696  714 yurt                           None      
+n03216828  715 dock                           None      
+n02892201  716 brass                          None      
+n03743016  717 megalith                       None      
+n02788148  718 bannister                      None      
+n02894605  719 breakwater                     None      
+n03160309  720 dam                            None      
+n03000134  721 chainlink_fence                None      
+n03930313  722 picket_fence                   None      
+n04604644  723 worm_fence                     None      
+n04326547  724 stone_wall                     None      
 n03459775  725 grille                         car       
-n04239074  726 sliding_door                  
-n04501370  727 turnstile                     
-n03792972  728 mountain_tent                 
-n04149813  729 scoreboard                    
-n03530642  730 honeycomb                     
-n03961711  731 plate_rack                    
-n03903868  732 pedestal                      
-n02814860  733 beacon                        
-n07711569  734 mashed_potato                 
-n07720875  735 bell_pepper                   
-n07714571  736 head_cabbage                  
-n07714990  737 broccoli                      
-n07715103  738 cauliflower                   
-n07716358  739 zucchini                      
-n07716906  740 spaghetti_squash              
-n07717410  741 acorn_squash                  
-n07717556  742 butternut_squash              
-n07718472  743 cucumber                      
-n07718747  744 artichoke                     
-n07730033  745 cardoon                       
-n07734744  746 mushroom                      
-n04209239  747 shower_curtain                
-n03594734  748 jean                          
-n02971356  749 carton                        
-n03485794  750 handkerchief                  
-n04133789  751 sandal                        
-n02747177  752 ashcan                        
-n04125021  753 safe                          
-n07579787  754 plate                         
-n03814906  755 necklace                      
-n03134739  756 croquet_ball                  
-n03404251  757 fur_coat                      
-n04423845  758 thimble                       
-n03877472  759 pajama                        
-n04120489  760 running_shoe                  
-n03062245  761 cocktail_shaker               
-n03014705  762 chest                         
-n03717622  763 manhole_cover                 
-n03777754  764 modem                         
-n04493381  765 tub                           
-n04476259  766 tray                          
-n02777292  767 balance_beam                  
-n07693725  768 bagel                         
-n03998194  769 prayer_rug                    
-n03617480  770 kimono                        
-n07590611  771 hot_pot                       
-n04579145  772 whiskey_jug                   
-n03623198  773 knee_pad                      
-n07248320  774 book_jacket                   
-n04277352  775 spindle                       
-n04229816  776 ski_mask                      
+n04239074  726 sliding_door                   None      
+n04501370  727 turnstile                      None      
+n03792972  728 mountain_tent                  None      
+n04149813  729 scoreboard                     None      
+n03530642  730 honeycomb                      None      
+n03961711  731 plate_rack                     None      
+n03903868  732 pedestal                       None      
+n02814860  733 beacon                         None      
+n07711569  734 mashed_potato                  None      
+n07720875  735 bell_pepper                    None      
+n07714571  736 head_cabbage                   None      
+n07714990  737 broccoli                       broccoli  
+n07715103  738 cauliflower                    None      
+n07716358  739 zucchini                       None      
+n07716906  740 spaghetti_squash               None      
+n07717410  741 acorn_squash                   None      
+n07717556  742 butternut_squash               None      
+n07718472  743 cucumber                       None      
+n07718747  744 artichoke                      None      
+n07730033  745 cardoon                        None      
+n07734744  746 mushroom                       None      
+n04209239  747 shower_curtain                 None      
+n03594734  748 jean                           None      
+n02971356  749 carton                         None      
+n03485794  750 handkerchief                   None      
+n04133789  751 sandal                         None      
+n02747177  752 ashcan                         None      
+n04125021  753 safe                           None      
+n07579787  754 plate                          None      
+n03814906  755 necklace                       None      
+n03134739  756 croquet_ball                   None      
+n03404251  757 fur_coat                       None      
+n04423845  758 thimble                        None      
+n03877472  759 pajama                         None      
+n04120489  760 running_shoe                   None      
+n03062245  761 cocktail_shaker                None      
+n03014705  762 chest                          None      
+n03717622  763 manhole_cover                  None      
+n03777754  764 modem                          None      
+n04493381  765 tub                            None      
+n04476259  766 tray                           None      
+n02777292  767 balance_beam                   None      
+n07693725  768 bagel                          None      
+n03998194  769 prayer_rug                     None      
+n03617480  770 kimono                         None      
+n07590611  771 hot_pot                        None      
+n04579145  772 whiskey_jug                    None      
+n03623198  773 knee_pad                       None      
+n07248320  774 book_jacket                    None      
+n04277352  775 spindle                        None      
+n04229816  776 ski_mask                       None      
 n02823428  777 beer_bottle                    bottle    
-n03127747  778 crash_helmet                  
-n02877765  779 bottlecap                     
-n04435653  780 tile_roof                     
-n03724870  781 mask                          
-n03710637  782 maillot                       
-n03920288  783 Petri_dish                    
-n03379051  784 football_helmet               
-n02807133  785 bathing_cap                   
-n04399382  786 teddy                         
-n03527444  787 holster                       
+n03127747  778 crash_helmet                   None      
+n02877765  779 bottlecap                      None      
+n04435653  780 tile_roof                      None      
+n03724870  781 mask                           None      
+n03710637  782 maillot                        None      
+n03920288  783 Petri_dish                     None      
+n03379051  784 football_helmet                None      
+n02807133  785 bathing_cap                    None      
+n04399382  786 teddy                          teddy_bear
+n03527444  787 holster                        None      
 n03983396  788 pop_bottle                     bottle    
-n03924679  789 photocopier                   
-n04532106  790 vestment                      
-n06785654  791 crossword_puzzle              
-n03445777  792 golf_ball                     
-n07613480  793 trifle                        
-n04350905  794 suit                          
-n04562935  795 water_tower                   
-n03325584  796 feather_boa                   
-n03045698  797 cloak                         
+n03924679  789 photocopier                    None      
+n04532106  790 vestment                       None      
+n06785654  791 crossword_puzzle               None      
+n03445777  792 golf_ball                      None      
+n07613480  793 trifle                         None      
+n04350905  794 suit                           None      
+n04562935  795 water_tower                    None      
+n03325584  796 feather_boa                    None      
+n03045698  797 cloak                          None      
 n07892512  798 red_wine                       bottle    
-n03250847  799 drumstick                     
-n04192698  800 shield                        
-n03026506  801 Christmas_stocking            
-n03534580  802 hoopskirt                     
-n07565083  803 menu                          
-n04296562  804 stage                         
-n02869837  805 bonnet                        
-n07871810  806 meat_loaf                     
-n02799071  807 baseball                      
-n03314780  808 face_powder                   
-n04141327  809 scabbard                      
-n04357314  810 sunscreen                     
+n03250847  799 drumstick                      None      
+n04192698  800 shield                         None      
+n03026506  801 Christmas_stocking             None      
+n03534580  802 hoopskirt                      None      
+n07565083  803 menu                           None      
+n04296562  804 stage                          None      
+n02869837  805 bonnet                         None      
+n07871810  806 meat_loaf                      None      
+n02799071  807 baseball                       None      
+n03314780  808 face_powder                    None      
+n04141327  809 scabbard                       None      
+n04357314  810 sunscreen                      None      
 n02823750  811 beer_glass                     bottle    
-n13052670  812 hen-of-the-woods              
-n07583066  813 guacamole                     
-n03637318  814 lampshade                     
-n04599235  815 wool                          
-n07802026  816 hay                           
-n02883205  817 bow_tie                       
-n03709823  818 mailbag                       
-n04560804  819 water_jug                     
-n02909870  820 bucket                        
-n03207743  821 dishrag                       
-n04263257  822 soup_bowl                     
-n07932039  823 eggnog                        
-n03786901  824 mortar                        
-n04479046  825 trench_coat                   
-n03873416  826 paddle                        
-n02999410  827 chain                         
-n04367480  828 swab                          
-n03775546  829 mixing_bowl                   
-n07875152  830 potpie                        
+n13052670  812 hen-of-the-woods               None      
+n07583066  813 guacamole                      None      
+n03637318  814 lampshade                      None      
+n04599235  815 wool                           None      
+n07802026  816 hay                            None      
+n02883205  817 bow_tie                        tie       
+n03709823  818 mailbag                        handbag   
+n04560804  819 water_jug                      None      
+n02909870  820 bucket                         None      
+n03207743  821 dishrag                        None      
+n04263257  822 soup_bowl                      bowl      
+n07932039  823 eggnog                         None      
+n03786901  824 mortar                         None      
+n04479046  825 trench_coat                    None      
+n03873416  826 paddle                         None      
+n02999410  827 chain                          None      
+n04367480  828 swab                           None      
+n03775546  829 mixing_bowl                    None      
+n07875152  830 potpie                         None      
 n04591713  831 wine_bottle                    bottle    
-n04201297  832 shoji                         
-n02916936  833 bulletproof_vest              
+n04201297  832 shoji                          None      
+n02916936  833 bulletproof_vest               None      
 n03240683  834 drilling_platform              boat      
-n02840245  835 binder                        
-n02963159  836 cardigan                      
-n04370456  837 sweatshirt                    
+n02840245  835 binder                         None      
+n02963159  836 cardigan                       None      
+n04370456  837 sweatshirt                     None      
 n03991062  838 pot                            potted/plant
-n02843684  839 birdhouse                     
-n03482405  840 hamper                        
-n03942813  841 ping-pong_ball                
-n03908618  842 pencil_box                    
-n03902125  843 pay-phone                     
-n07584110  844 consomme                      
-n02730930  845 apron                         
-n04023962  846 punching_bag                  
-n02769748  847 backpack                      
-n10148035  848 groom                         
-n02817516  849 bearskin                      
-n03908714  850 pencil_sharpener              
-n02906734  851 broom                         
-n03788365  852 mosquito_net                  
-n02667093  853 abaya                         
-n03787032  854 mortarboard                   
-n03980874  855 poncho                        
-n03141823  856 crutch                        
-n03976467  857 Polaroid_camera               
-n04264628  858 space_bar                     
-n07930864  859 cup                           
-n04039381  860 racket                        
-n06874185  861 traffic_light                 
-n04033901  862 quill                         
-n04041544  863 radio                         
-n07860988  864 dough                         
-n03146219  865 cuirass                       
-n03763968  866 military_uniform              
-n03676483  867 lipstick                      
-n04209133  868 shower_cap                    
+n02843684  839 birdhouse                      None      
+n03482405  840 hamper                         None      
+n03942813  841 ping-pong_ball                 None      
+n03908618  842 pencil_box                     None      
+n03902125  843 pay-phone                      None      
+n07584110  844 consomme                       None      
+n02730930  845 apron                          None      
+n04023962  846 punching_bag                   None      
+n02769748  847 backpack                       None      
+n10148035  848 groom                          None      
+n02817516  849 bearskin                       None      
+n03908714  850 pencil_sharpener               None      
+n02906734  851 broom                          None      
+n03788365  852 mosquito_net                   None      
+n02667093  853 abaya                          None      
+n03787032  854 mortarboard                    None      
+n03980874  855 poncho                         None      
+n03141823  856 crutch                         None      
+n03976467  857 Polaroid_camera                None      
+n04264628  858 space_bar                      None      
+n07930864  859 cup                            None      
+n04039381  860 racket                         tennis-racket
+n06874185  861 traffic_light                  traffic-light
+n04033901  862 quill                          None      
+n04041544  863 radio                          None      
+n07860988  864 dough                          None      
+n03146219  865 cuirass                        None      
+n03763968  866 military_uniform               None      
+n03676483  867 lipstick                       None      
+n04209133  868 shower_cap                     None      
 n03782006  869 monitor                        tv/monitor
-n03857828  870 oscilloscope                  
-n03775071  871 mitten                        
-n02892767  872 brassiere                     
-n07684084  873 French_loaf                   
-n04522168  874 vase                          
-n03764736  875 milk_can                      
-n04118538  876 rugby_ball                    
-n03887697  877 paper_towel                   
-n13044778  878 earthstar                     
-n03291819  879 envelope                      
-n03770439  880 miniskirt                     
-n03124170  881 cowboy_hat                    
+n03857828  870 oscilloscope                   None      
+n03775071  871 mitten                         None      
+n02892767  872 brassiere                      None      
+n07684084  873 French_loaf                    None      
+n04522168  874 vase                           vase      
+n03764736  875 milk_can                       None      
+n04118538  876 rugby_ball                     None      
+n03887697  877 paper_towel                    None      
+n13044778  878 earthstar                      None      
+n03291819  879 envelope                       None      
+n03770439  880 miniskirt                      None      
+n03124170  881 cowboy_hat                     None      
 n04487081  882 trolleybus                     bus       
-n03916031  883 perfume                       
-n02808440  884 bathtub                       
-n07697537  885 hotdog                        
-n12985857  886 coral_fungus                  
+n03916031  883 perfume                        None      
+n02808440  884 bathtub                        None      
+n07697537  885 hotdog                         hot-dog   
+n12985857  886 coral_fungus                   None      
 n02917067  887 bullet_train                   train     
-n03938244  888 pillow                        
-n15075141  889 toilet_tissue                 
-n02978881  890 cassette                      
-n02966687  891 carpenter's_kit               
-n03633091  892 ladle                         
-n13040303  893 stinkhorn                     
-n03690938  894 lotion                        
-n03476991  895 hair_spray                    
-n02669723  896 academic_gown                 
-n03220513  897 dome                          
-n03127925  898 crate                         
-n04584207  899 wig                           
-n07880968  900 burrito                       
-n03937543  901 pill_bottle                   
-n03000247  902 chain_mail                    
-n04418357  903 theater_curtain               
-n04590129  904 window_shade                  
-n02795169  905 barrel                        
-n04553703  906 washbasin                     
-n02783161  907 ballpoint                     
-n02802426  908 basketball                    
-n02808304  909 bath_towel                    
-n03124043  910 cowboy_boot                   
-n03450230  911 gown                          
-n04589890  912 window_screen                 
-n12998815  913 agaric                        
-n02992529  914 cellular_telephone            
-n03825788  915 nipple                        
-n02790996  916 barbell                       
-n03710193  917 mailbox                       
-n03630383  918 lab_coat                      
-n03347037  919 fire_screen                   
+n03938244  888 pillow                         None      
+n15075141  889 toilet_tissue                  None      
+n02978881  890 cassette                       None      
+n02966687  891 carpenter's_kit                None      
+n03633091  892 ladle                          None      
+n13040303  893 stinkhorn                      None      
+n03690938  894 lotion                         None      
+n03476991  895 hair_spray                     None      
+n02669723  896 academic_gown                  None      
+n03220513  897 dome                           None      
+n03127925  898 crate                          None      
+n04584207  899 wig                            None      
+n07880968  900 burrito                        None      
+n03937543  901 pill_bottle                    None      
+n03000247  902 chain_mail                     None      
+n04418357  903 theater_curtain                None      
+n04590129  904 window_shade                   None      
+n02795169  905 barrel                         None      
+n04553703  906 washbasin                      None      
+n02783161  907 ballpoint                      None      
+n02802426  908 basketball                     sports-ball
+n02808304  909 bath_towel                     None      
+n03124043  910 cowboy_boot                    None      
+n03450230  911 gown                           None      
+n04589890  912 window_screen                  None      
+n12998815  913 agaric                         None      
+n02992529  914 cellular_telephone             cell-phone
+n03825788  915 nipple                         None      
+n02790996  916 barbell                        None      
+n03710193  917 mailbox                        None      
+n03630383  918 lab_coat                       None      
+n03347037  919 fire_screen                    None      
 n03769881  920 minibus                        bus       
-n03871628  921 packet                        
-n03733281  922 maze                          
-n03976657  923 pole                          
-n03535780  924 horizontal_bar                
-n04259630  925 sombrero                      
-n03929855  926 pickelhaube                   
-n04049303  927 rain_barrel                   
-n04548362  928 wallet                        
-n02979186  929 cassette_player               
-n06596364  930 comic_book                    
-n03935335  931 piggy_bank                    
-n06794110  932 street_sign                   
-n02825657  933 bell_cote                     
-n03388183  934 fountain_pen                  
-n04591157  935 Windsor_tie                   
-n04540053  936 volleyball                    
-n03866082  937 overskirt                     
-n04136333  938 sarong                        
-n04026417  939 purse                         
-n02865351  940 bolo_tie                      
-n02834397  941 bib                           
-n03888257  942 parachute                     
-n04235860  943 sleeping_bag                  
+n03871628  921 packet                         None      
+n03733281  922 maze                           None      
+n03976657  923 pole                           None      
+n03535780  924 horizontal_bar                 None      
+n04259630  925 sombrero                       None      
+n03929855  926 pickelhaube                    None      
+n04049303  927 rain_barrel                    None      
+n04548362  928 wallet                         None      
+n02979186  929 cassette_player                None      
+n06596364  930 comic_book                     None      
+n03935335  931 piggy_bank                     None      
+n06794110  932 street_sign                    None      
+n02825657  933 bell_cote                      None      
+n03388183  934 fountain_pen                   None      
+n04591157  935 Windsor_tie                    tie       
+n04540053  936 volleyball                     sports-ball
+n03866082  937 overskirt                      None      
+n04136333  938 sarong                         None      
+n04026417  939 purse                          None      
+n02865351  940 bolo_tie                       None      
+n02834397  941 bib                            None      
+n03888257  942 parachute                      None      
+n04235860  943 sleeping_bag                   None      
 n04404412  944 television                     tv/monitor
-n04371430  945 swimming_trunks               
-n03733805  946 measuring_cup                 
-n07920052  947 espresso                      
-n07873807  948 pizza                         
-n02895154  949 breastplate                   
-n04204238  950 shopping_basket               
-n04597913  951 wooden_spoon                  
-n04131690  952 saltshaker                    
-n07836838  953 chocolate_sauce               
+n04371430  945 swimming_trunks                None      
+n03733805  946 measuring_cup                  None      
+n07920052  947 espresso                       None      
+n07873807  948 pizza                          pizza     
+n02895154  949 breastplate                    None      
+n04204238  950 shopping_basket                None      
+n04597913  951 wooden_spoon                   spoon     
+n04131690  952 saltshaker                     None      
+n07836838  953 chocolate_sauce                None      
 n09835506  954 ballplayer                     person    
 n03443371  955 goblet                         bottle    
-n13037406  956 gyromitra                     
+n13037406  956 gyromitra                      None      
 n04336792  957 stretcher                      person    
 n04557648  958 water_bottle                   bottle    
-n03187595  959 dial_telephone                
-n04254120  960 soap_dispenser                
-n03595614  961 jersey                        
+n03187595  959 dial_telephone                 None      
+n04254120  960 soap_dispenser                 None      
+n03595614  961 jersey                         None      
 n04146614  962 school_bus                     bus       
-n03598930  963 jigsaw_puzzle                 
-n03958227  964 plastic_bag                   
-n04069434  965 reflex_camera                 
-n03188531  966 diaper                        
-n02786058  967 Band_Aid                      
-n07615774  968 ice_lolly                     
-n04525038  969 velvet                        
-n04409515  970 tennis_ball                   
-n03424325  971 gasmask                       
-n03223299  972 doormat                       
-n03680355  973 Loafer                        
-n07614500  974 ice_cream                     
-n07695742  975 pretzel                       
-n04033995  976 quilt                         
-n03710721  977 maillot                       
-n04392985  978 tape_player                   
-n03047690  979 clog                          
-n03584254  980 iPod                          
-n13054560  981 bolete                        
-n10565667  982 scuba_diver                   
-n03950228  983 pitcher                       
-n03729826  984 matchstick                    
-n02837789  985 bikini                        
-n04254777  986 sock                          
-n02988304  987 CD_player                     
-n03657121  988 lens_cap                      
-n04417672  989 thatch                        
-n04523525  990 vault                         
-n02815834  991 beaker                        
-n09229709  992 bubble                        
-n07697313  993 cheeseburger                  
-n03888605  994 parallel_bars                 
-n03355925  995 flagpole                      
-n03063599  996 coffee_mug                    
-n04116512  997 rubber_eraser                 
-n04325704  998 stole                         
-n07831146  999 carbonara                     
-n03255030 1000 dumbbell                      
+n03598930  963 jigsaw_puzzle                  None      
+n03958227  964 plastic_bag                    None      
+n04069434  965 reflex_camera                  None      
+n03188531  966 diaper                         None      
+n02786058  967 Band_Aid                       None      
+n07615774  968 ice_lolly                      None      
+n04525038  969 velvet                         None      
+n04409515  970 tennis_ball                    sports-ball
+n03424325  971 gasmask                        None      
+n03223299  972 doormat                        None      
+n03680355  973 Loafer                         None      
+n07614500  974 ice_cream                      None      
+n07695742  975 pretzel                        None      
+n04033995  976 quilt                          None      
+n03710721  977 maillot                        None      
+n04392985  978 tape_player                    None      
+n03047690  979 clog                           None      
+n03584254  980 iPod                           None      
+n13054560  981 bolete                         None      
+n10565667  982 scuba_diver                    None      
+n03950228  983 pitcher                        None      
+n03729826  984 matchstick                     None      
+n02837789  985 bikini                         None      
+n04254777  986 sock                           None      
+n02988304  987 CD_player                      None      
+n03657121  988 lens_cap                       None      
+n04417672  989 thatch                         None      
+n04523525  990 vault                          None      
+n02815834  991 beaker                         None      
+n09229709  992 bubble                         None      
+n07697313  993 cheeseburger                   None      
+n03888605  994 parallel_bars                  None      
+n03355925  995 flagpole                       None      
+n03063599  996 coffee_mug                     None      
+n04116512  997 rubber_eraser                  None      
+n04325704  998 stole                          None      
+n07831146  999 carbonara                      None      
+n03255030 1000 dumbbell                       None      
