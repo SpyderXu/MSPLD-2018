@@ -1,12 +1,4 @@
 function res = weakly_online_test(confs, imdb, roidb, varargin)
-% --------------------------------------------------------
-% R-FCN implementation
-% Modified from MATLAB Faster R-CNN (https://github.com/shaoqingren/faster_rcnn)
-% Copyright (c) 2016, Jifeng Dai
-% Licensed under The MIT License [see LICENSE for details]
-% --------------------------------------------------------
-
-%% inputs
     ip = inputParser;
     ip.addRequired('confs',                             @iscell);
     ip.addRequired('imdb',                              @isstruct);

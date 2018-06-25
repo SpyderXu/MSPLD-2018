@@ -1,10 +1,4 @@
 function [pred_boxes] = rfcn_bbox_transform_inv(boxes, box_deltas)
-% --------------------------------------------------------
-% R-FCN implementation
-% Modified from MATLAB Faster R-CNN (https://github.com/shaoqingren/faster_rcnn)
-% Copyright (c) 2016, Jifeng Dai
-% Licensed under The MIT License [see LICENSE for details]
-% --------------------------------------------------------
     
     src_w = double(boxes(:, 3) - boxes(:, 1) + 1);
     src_h = double(boxes(:, 4) - boxes(:, 2) + 1);

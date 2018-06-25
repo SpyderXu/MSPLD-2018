@@ -1,11 +1,4 @@
 function [regression_label] = rfcn_bbox_transform(ex_boxes, gt_boxes)
-% [regression_label] = rfcn_bbox_transform(ex_boxes, gt_boxes)
-% --------------------------------------------------------
-% R-FCN implementation
-% Modified from MATLAB Faster R-CNN (https://github.com/shaoqingren/faster_rcnn)
-% Copyright (c) 2016, Jifeng Dai
-% Licensed under The MIT License [see LICENSE for details]
-% --------------------------------------------------------
 
     ex_widths = ex_boxes(:, 3) - ex_boxes(:, 1) + 1;
     ex_heights = ex_boxes(:, 4) - ex_boxes(:, 2) + 1;

@@ -1,10 +1,4 @@
 function [image_roidb, bbox_means, bbox_stds] = weakly_prepare_image_roidb(conf, imdbs, roidbs, bbox_means, bbox_stds)
-% --------------------------------------------------------
-% R-FCN implementation
-% Modified from MATLAB Faster R-CNN (https://github.com/shaoqingren/faster_rcnn)
-% Copyright (c) 2016, Jifeng Dai
-% Licensed under The MIT License [see LICENSE for details]
-% --------------------------------------------------------   
     
     if ~exist('bbox_means', 'var')
         bbox_means = [];
