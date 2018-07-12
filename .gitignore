@@ -40,6 +40,8 @@ fetch_data/*.zip
 # =========================
 
 .DS_Store
+*/.DS_Store
+*/*/.DS_Store
 .AppleDouble
 .LSOverride
 
@@ -57,3 +59,4 @@ Network Trash Folder
 Temporary Items
 .apdisk
 *.swp
+
