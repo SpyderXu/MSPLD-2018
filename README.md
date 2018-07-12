@@ -1,4 +1,4 @@
-# Few-Example Object Detection with Model Communication
+# [Few-Example Object Detection with Model Communication](https://ieeexplore.ieee.org/document/8374906)
 
 By Xuanyi Dong, Liang Zheng, Fan Ma, Yi Yang, Deyu Meng
 
@@ -11,8 +11,6 @@ We propose an algorithm to combine the self-paced learning and the multi-modal l
 
 <img src="external/images/comparision.png" width="900">
 Please refer to the paper for more detailed comparison.
-
-MSPLD was accepted to [TPAMI 2018](https://ieeexplore.ieee.org/document/8374906/).
 
 ### Citation
 
@@ -34,7 +32,11 @@ If you find MSPLD useful in your research, please consider citing:
 
 - `Caffe` build for MSPLD (included in this repository, see `external/caffe`)
 - MATLAB 2014a or later
-- Download PASCAL VOC 2007, PASCAL VOC 2012, and the region proposals extracted by selective search or edge box.
+
+### Data Preparation
+- Download PASCAL VOC 2007 and PASCAL VOC 2012. Follow the `README` in `datasets`
+- Download the region proposals extracted by Selective Search or EdgeBox. 
+- Download the pre-trained Imagenet models for ResNet, VGG, and GoogleNet
  
 ### Training & Testing
 0. Run `experiments/VOC07_Tr_Res50E_Res101S_VGG16F` to repoduce the results on VOC 2007.
