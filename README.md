@@ -2,14 +2,17 @@
 
 By Xuanyi Dong, Liang Zheng, Fan Ma, Yi Yang, Deyu Meng
 
-### Introduction
+## Introduction
 
 This framework aims to solve the few-example object detection problem, in which there are only a few images with bounding box annotations per object class and a large number of images without annotations. The framework combines self-paced learning and multi-modal learning, and we call it Multi-modal Self-Paced Learning for Detection (MSPLD). The code is modified from [R-FCN](https://github.com/daijifeng001/R-FCN) and [Faster RCNN](https://github.com/shaoqingren/faster_rcnn).
-Note that few-example object detection is a kind of semi-supervised object detection.
+Note that few-example object detection is a special case of semi-supervised object detection. However, most works on semi-supervised object detection assume that some classes have many strong bounding boxes, while others have weak image-level labels. A brief comparison between MSPLD and weakly supervised/semi-supervised/few-example object detection is shown below:
+
+<img src="external/images/comparision.png" width="600">
+Please refer to the paper for more detailed comparison.
 
 MSPLD was accepted to [TPAMI 2018](https://ieeexplore.ieee.org/document/8374906/).
 
-### Citing MSPLD
+### Citation
 
 If you find MSPLD useful in your research, please consider citing:
 ```
