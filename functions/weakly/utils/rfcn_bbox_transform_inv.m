@@ -1,3 +1,9 @@
+% --------------------------------------------------------
+% MSPLD implementation
+% Modified from MATLAB Faster R-CNN (https://github.com/shaoqingren/faster_rcnn)
+% Copyright (c) 2018, Xuanyi Dong
+% Licensed under The MIT License [see LICENSE for details]
+% --------------------------------------------------------
 function [pred_boxes] = rfcn_bbox_transform_inv(boxes, box_deltas)
     
     src_w = double(boxes(:, 3) - boxes(:, 1) + 1);

@@ -1,3 +1,8 @@
+%###########################################################################
+%## Copyright (c) 2018-present, Xuanyi Dong                              ###
+%## Few-Example Object Detection with Model Communication                ###
+%## IEEE Transactions on Pattern Analysis and Machine Intelligence, 2018 ###
+%###########################################################################
 function res = weakly_online_test(confs, imdb, roidb, varargin)
     ip = inputParser;
     ip.addRequired('confs',                             @iscell);

@@ -123,8 +123,6 @@ function save_model_path = weakly_co_train_v3(imdb_train, roidb_train, models, v
     pre_keeps = zeros(numel(unsupervise_ids), numel(models));
 
     % rng_seed 5; per_sample 3;
-    %Init_Per_Select = [40, 12, 10, 20, 20, 10, 50, 25, 15, 10,...
-    %                   20, 15, 15, 30, 15, 15, 15, 20, 40, 35];
     Init_Per_Select = [40, 12, 10, 20, 20, 10, 50, 25, 15, 10,...
                        20, 15, 15, 30, 15, 15, 15, 20, 40, 35];
 %% Start Training

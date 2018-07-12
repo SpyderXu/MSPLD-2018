@@ -1,22 +1,11 @@
 function res_name = prepare_online_voc(cls, boxes, imdb, cache_name, suffix)
-% res = imdb_eval_voc(cls, boxes, imdb, suffix)
-%   Use the VOCdevkit to evaluate detections specified in boxes
-%   for class cls against the ground-truth boxes in the image
-%   database imdb. Results files are saved with an optional
-%   suffix.
+% --------------------------------------------------------
+% MSPLD implementation
+% Modified from MATLAB Faster R-CNN (https://github.com/shaoqingren/faster_rcnn)
+% Copyright (c) 2018, Xuanyi Dong
+% Licensed under The MIT License [see LICENSE for details]
+% --------------------------------------------------------
 
-% AUTORIGHTS
-% ---------------------------------------------------------
-% Copyright (c) 2014, Ross Girshick
-% 
-% This file is part of the R-CNN code and is available 
-% under the terms of the Simplified BSD License provided in 
-% LICENSE. Please retain this notice and LICENSE if you use 
-% this file (or any portion of it) in your project.
-% ---------------------------------------------------------
-
-% Add a random string ("salt") to the end of the results file name
-% to prevent concurrent evaluations from clobbering each other
 use_res_salt = true;
 % comp4 because we use outside data (ILSVRC2012)
 comp_id = 'comp4';
